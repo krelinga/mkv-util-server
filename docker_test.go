@@ -71,6 +71,10 @@ func (tc testContainer) Run(t *testing.T) {
     t.Log("Started Docker container.")
 }
 
+func testGetFileSize(t *testing.T) {
+    t.Parallel()
+}
+
 func TestDocker(t *testing.T) {
     if testing.Short() {
         t.Skip()
@@ -81,4 +85,6 @@ func TestDocker(t *testing.T) {
     tc.Build(t)
     tc.Run(t)
     defer tc.Stop(t)
+
+    t.Run("testGetFileSize", testGetFileSize)
 }
