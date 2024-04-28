@@ -55,8 +55,16 @@ func (tc testContainer) Stop(t *testing.T) {
 
 func (tc testContainer) Run(t *testing.T) {
     t.Helper()
-    cmd := exec.Command("docker", "run", "--rm", "-d", "--name", tc.containerId, tc.containerId)
+    cmd := exec.Command("docker")
+    args := []string{
+        "run",
+        "--rm",
+        "-d",
+        "--name", tc.containerId,
+        tc.containerId,
+    }
     cmdOutput := captureOutput(cmd)
+    cmd.Args = append(cmd.Args, args...)
     if err := cmd.Run(); err != nil {
         t.Fatalf("Could not run docker container: %s %s", err, cmdOutput)
     }
