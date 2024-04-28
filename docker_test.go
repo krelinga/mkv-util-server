@@ -2,11 +2,15 @@ package main
 
 import (
     "bytes"
+    "context"
     "fmt"
     "testing"
     "os/exec"
 
     "github.com/google/uuid"
+    "github.com/krelinga/mkv-util-server/pb"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
 )
 
 type testContainer struct {
@@ -61,6 +65,7 @@ func (tc testContainer) Run(t *testing.T) {
         "--rm",
         "-d",
         "--name", tc.containerId,
+        "-P",  // TODO: expose only the port we need?
         tc.containerId,
     }
     cmdOutput := captureOutput(cmd)
@@ -71,7 +76,7 @@ func (tc testContainer) Run(t *testing.T) {
     t.Log("Started Docker container.")
 }
 
-func testGetFileSize(t *testing.T) {
+func testGetFileSize(t *testing.T, _ pb.MkvUtilsClient) {
     t.Parallel()
 }
 
@@ -86,5 +91,16 @@ func TestDocker(t *testing.T) {
     tc.Run(t)
     defer tc.Stop(t)
 
-    t.Run("testGetFileSize", testGetFileSize)
+    // Create a stub to the test server.
+    const target = "docker-daemon:25002"
+    creds := grpc.WithTransportCredentials(insecure.NewCredentials())
+    conn, err := grpc.DialContext(context.Background(), target, creds)
+    if err != nil {
+        t.Fatalf("Could not dial target: %s", err)
+    }
+    client := pb.NewMkvUtilsClient(conn)
+
+    t.Run("testGetFileSize", func(t *testing.T) {
+        testGetFileSize(t, client)
+    })
 }
