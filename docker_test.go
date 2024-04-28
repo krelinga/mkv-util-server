@@ -36,22 +36,32 @@ func (tc testContainer) Build(t *testing.T) {
     t.Log("Finished building docker container.")
 }
 
-func (tc testContainer) Delete(t *testing.T) {
+func (tc testContainer) Stop(t *testing.T) {
     t.Helper()
-    cmd := exec.Command("docker", "image", "rm", tc.containerId)
+    cmd := exec.Command("docker", "container", "stop", tc.containerId)
     cmdOutput := captureOutput(cmd)
     if err := cmd.Run(); err != nil {
-        t.Fatalf("could not delete docker container: %s %s", err, cmdOutput)
+        t.Fatalf("could not stop & delete docker container: %s %s", err, cmdOutput)
     }
-    t.Log("Finished deleting docker container.")
+    t.Log("Finished stopping & deleting docker container.")
+
+    cmd = exec.Command("docker", "image", "rm", tc.containerId)
+    cmdOutput = captureOutput(cmd)
+    if err := cmd.Run(); err != nil {
+        t.Fatalf("could not delete docker image: %s %s", err, cmdOutput)
+    }
+    t.Log("Finished deleting docker image.")
 }
 
-//func (tc testContainer) Run(args... string) (*bytes.Buffer, error) {
-//    cmd := exec.Command("docker", "run", "--rm", "-t", tc.containerId)
-//    cmdOutput := captureOutput(cmd)
-//    cmd.Args = append(cmd.Args, args...)
-//    return cmdOutput, cmd.Run()
-//}
+func (tc testContainer) Run(t *testing.T) {
+    t.Helper()
+    cmd := exec.Command("docker", "run", "--rm", "-d", "--name", tc.containerId, tc.containerId)
+    cmdOutput := captureOutput(cmd)
+    if err := cmd.Run(); err != nil {
+        t.Fatalf("Could not run docker container: %s %s", err, cmdOutput)
+    }
+    t.Log("Started Docker container.")
+}
 
 func TestDocker(t *testing.T) {
     if testing.Short() {
@@ -61,5 +71,6 @@ func TestDocker(t *testing.T) {
     t.Parallel()
     tc := newTestContainer()
     tc.Build(t)
-    defer tc.Delete(t)
+    tc.Run(t)
+    defer tc.Stop(t)
 }

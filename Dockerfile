@@ -11,5 +11,5 @@ FROM gcr.io/distroless/static-debian12:latest AS min_stage
 
 COPY --from=build_stage /app/mkv-utils-server /mkv-utils-server
 EXPOSE 25002
-ENTRYPOINT /mkv-utils-server
+ENTRYPOINT ["/mkv-utils-server"]
 
