@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/krelinga/mkv-util-server/pb";
+
+message GetFileSizeRequest {
+    string path = 1;
+}
+
+message GetFileSizeReply {
+    int64 size = 1;
+}
+
+service MkvUtils {
+    rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
+}

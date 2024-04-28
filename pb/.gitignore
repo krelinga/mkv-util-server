@@ -1,0 +1,2 @@
+# Build these from .proto files with ./build.sh
+*.pb.go
