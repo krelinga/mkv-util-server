@@ -12,6 +12,7 @@ deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtool
 EOM
 apt-get update
 apt-get install -y --no-upgrade mkvtoolnix
-apt-get autoremove
+apt-get remove -y wget
+apt-get autoremove -y
 apt-get clean
 
