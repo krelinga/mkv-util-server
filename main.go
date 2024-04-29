@@ -1,6 +1,7 @@
 package main
 
 import (
+    "context"
     "log"
     "net"
 
@@ -10,6 +11,12 @@ import (
 
 type MkvUtilsServer struct {
     pb.UnimplementedMkvUtilsServer
+}
+
+func (s *MkvUtilsServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest) (*pb.GetFileSizeReply, error) {
+    return &pb.GetFileSizeReply{
+        Size: -1,
+    }, nil
 }
 
 func MainOrError() error {

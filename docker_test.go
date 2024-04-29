@@ -65,7 +65,7 @@ func (tc testContainer) Run(t *testing.T) {
         "--rm",
         "-d",
         "--name", tc.containerId,
-        "-P",  // TODO: expose only the port we need?
+        "-p", "0.0.0.0:25002:25002",
         tc.containerId,
     }
     cmdOutput := captureOutput(cmd)
@@ -76,8 +76,16 @@ func (tc testContainer) Run(t *testing.T) {
     t.Log("Started Docker container.")
 }
 
-func testGetFileSize(t *testing.T, _ pb.MkvUtilsClient) {
-    t.Parallel()
+func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
+    req := &pb.GetFileSizeRequest{}
+    rep, err := c.GetFileSize(context.Background(), req)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    if rep.Size != -1 {
+        t.Error(rep.Size)
+    }
 }
 
 func TestDocker(t *testing.T) {
