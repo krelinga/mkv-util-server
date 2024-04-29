@@ -65,7 +65,7 @@ func (tc testContainer) Run(t *testing.T) {
         "--rm",
         "-d",
         "--name", tc.containerId,
-        "-p", "0.0.0.0:25002:25002",
+        "-p", "25002:25002",
         tc.containerId,
     }
     cmdOutput := captureOutput(cmd)
