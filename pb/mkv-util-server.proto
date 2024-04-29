@@ -10,6 +10,22 @@ message GetFileSizeReply {
     int64 size = 1;
 }
 
+message RunMkvToolNixCommandRequest {
+    enum Command {
+        COMMAND_UNKNOWN = 0;
+        COMMAND_MKVINFO = 1;
+    }
+    Command command = 1;
+    repeated string args = 2;
+}
+
+message RunMkvToolNixCommandReply {
+    int32 exit_code = 1;
+    string stdout = 2;
+    string stderr = 3;
+}
+
 service MkvUtils {
     rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
+    rpc RunMkvToolNixCommand(RunMkvToolNixCommandRequest) returns (RunMkvToolNixCommandReply) {}
 }

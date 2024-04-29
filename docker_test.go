@@ -104,6 +104,21 @@ func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
     }
 }
 
+func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
+    req := &pb.RunMkvToolNixCommandRequest{
+        Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
+        Args: []string{
+            "/testdata/sample_640x360.mkv",
+        },
+    }
+    resp, err := c.RunMkvToolNixCommand(context.Background(), req)
+    if err != nil || len(resp.Stdout) == 0 {
+        t.Errorf("Error calling mkvinfo: %s", err)
+        t.Errorf("Stdout:\n%s", resp.Stdout)
+        t.Errorf("Stderr:\n%s", resp.Stderr)
+    }
+}
+
 func TestDocker(t *testing.T) {
     if testing.Short() {
         t.Skip()
@@ -126,5 +141,8 @@ func TestDocker(t *testing.T) {
 
     t.Run("testGetFileSize", func(t *testing.T) {
         testGetFileSize(t, client)
+    })
+    t.Run("testRunMkvToolNixCommand", func(t *testing.T) {
+        testRunMkvToolNixCommand(t, client)
     })
 }

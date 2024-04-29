@@ -7,8 +7,10 @@ COPY *.go ./
 RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o mkv-utils-server .
 
-FROM gcr.io/distroless/static-debian12:latest AS min_stage
+FROM debian:bookworm
 
+COPY --chmod=0700 install_mkvtoolnix.sh ./
+RUN ./install_mkvtoolnix.sh && rm ./install_mkvtoolnix.sh
 COPY --from=build_stage /app/mkv-utils-server /mkv-utils-server
 EXPOSE 25002
 ENTRYPOINT ["/mkv-utils-server"]

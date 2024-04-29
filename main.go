@@ -1,10 +1,14 @@
 package main
 
 import (
+    "bytes"
     "context"
+    "errors"
+    "fmt"
     "log"
     "net"
     "os"
+    "os/exec"
 
     "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/grpc"
@@ -22,6 +26,38 @@ func (s *MkvUtilsServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest
     return &pb.GetFileSizeReply{
         Size: stat.Size(),
     }, nil
+}
+
+func (s *MkvUtilsServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvToolNixCommandRequest) (*pb.RunMkvToolNixCommandReply, error) {
+    var command string;
+    switch r.Command {
+    case pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO:
+        command = "mkvinfo"
+    default:
+        return nil, fmt.Errorf("Unsupported command: %v", r.Command)
+    }
+    cmd := exec.CommandContext(ctx, command, r.Args...)
+    var stdout, stderr bytes.Buffer
+    cmd.Stdout = &stdout
+    cmd.Stderr = &stderr
+    err := cmd.Run()
+    getExitCode := func() int32 {
+        if err == nil {
+            return 0
+        }
+
+        var exitErr *exec.ExitError
+        if errors.Is(err, exitErr) {
+            return int32(exitErr.ExitCode())
+        }
+
+        return -1
+    }
+    return &pb.RunMkvToolNixCommandReply{
+        ExitCode: getExitCode(),
+        Stdout: stdout.String(),
+        Stderr: stderr.String(),
+    }, err
 }
 
 func MainOrError() error {
