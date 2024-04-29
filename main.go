@@ -4,6 +4,7 @@ import (
     "context"
     "log"
     "net"
+    "os"
 
     "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/grpc"
@@ -14,8 +15,12 @@ type MkvUtilsServer struct {
 }
 
 func (s *MkvUtilsServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest) (*pb.GetFileSizeReply, error) {
+    stat, err := os.Stat(r.Path)
+    if err != nil {
+        return nil, err
+    }
     return &pb.GetFileSizeReply{
-        Size: -1,
+        Size: stat.Size(),
     }, nil
 }
 

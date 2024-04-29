@@ -5,7 +5,9 @@ import (
     "context"
     "fmt"
     "testing"
+    "os"
     "os/exec"
+    "path/filepath"
 
     "github.com/google/uuid"
     "github.com/krelinga/mkv-util-server/pb"
@@ -60,12 +62,19 @@ func (tc testContainer) Stop(t *testing.T) {
 func (tc testContainer) Run(t *testing.T) {
     t.Helper()
     cmd := exec.Command("docker")
+    wd, err := os.Getwd()
+    if err != nil {
+        t.Fatalf("could not get working directory: %s", err)
+    }
+    testdataPath := filepath.Join(wd, "testdata")
+    mountCfg := fmt.Sprintf("type=bind,source=%s,target=/testdata", testdataPath)
     args := []string{
         "run",
         "--rm",
         "-d",
         "--name", tc.containerId,
         "-p", "25002:25002",
+        "--mount", mountCfg,
         tc.containerId,
     }
     cmdOutput := captureOutput(cmd)
@@ -77,14 +86,21 @@ func (tc testContainer) Run(t *testing.T) {
 }
 
 func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
-    req := &pb.GetFileSizeRequest{}
+    req := &pb.GetFileSizeRequest{
+        Path: "/testdata/test.txt",
+    }
     rep, err := c.GetFileSize(context.Background(), req)
     if err != nil {
-        t.Error(err)
+        t.Errorf("Error calling GetFileSize(): %s", err)
         return
     }
-    if rep.Size != -1 {
-        t.Error(rep.Size)
+    stat, err := os.Stat("testdata/test.txt")
+    if err != nil {
+        t.Errorf("Error stat'ing test file: %s", err)
+        return
+    }
+    if rep.Size != stat.Size() {
+        t.Errorf("size mismatch: rep.Size = %d, stat.Size() = %d", rep.Size, stat.Size())
     }
 }
 
