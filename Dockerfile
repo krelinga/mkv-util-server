@@ -7,7 +7,7 @@ COPY *.go ./
 RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o mkv-utils-server .
 
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
 COPY --chmod=0700 install_mkvtoolnix.sh ./
 RUN ./install_mkvtoolnix.sh && rm ./install_mkvtoolnix.sh
