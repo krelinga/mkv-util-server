@@ -25,7 +25,16 @@ message RunMkvToolNixCommandReply {
     string stderr = 3;
 }
 
+message ConcatRequest {
+    repeated string input_paths = 1;
+    string output_path = 2;
+}
+
+message ConcatReply {
+}
+
 service MkvUtils {
     rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
     rpc RunMkvToolNixCommand(RunMkvToolNixCommandRequest) returns (RunMkvToolNixCommandReply) {}
+    rpc Concat(ConcatRequest) returns (ConcatReply) {}
 }
