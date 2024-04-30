@@ -68,6 +68,7 @@ func (tc testContainer) Run(t *testing.T) {
     }
     testdataPath := filepath.Join(wd, "testdata")
     mountCfg := fmt.Sprintf("type=bind,source=%s,target=/testdata", testdataPath)
+    userCfg := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
     args := []string{
         "run",
         "--rm",
@@ -75,6 +76,8 @@ func (tc testContainer) Run(t *testing.T) {
         "--name", tc.containerId,
         "-p", "25002:25002",
         "--mount", mountCfg,
+        // This is needed so that generated files & directories have the correct ownership.
+        "--user", userCfg,
         tc.containerId,
     }
     cmdOutput := captureOutput(cmd)
@@ -154,6 +157,9 @@ func TestDocker(t *testing.T) {
         return
     }
     t.Parallel()
+    if err := os.RemoveAll("testdata/out"); err != nil {
+        t.Fatalf("Could not remove existing test output directory: %s", err)
+    }
     tc := newTestContainer()
     tc.Build(t)
     tc.Run(t)
