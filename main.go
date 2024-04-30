@@ -64,6 +64,10 @@ func (s *MkvUtilServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.Co
     return concat(ctx, r)
 }
 
+func (s *MkvUtilsServer) GetChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
+    return getChapters(ctx, r)
+}
+
 func MainOrError() error {
     lis, err := net.Listen("tcp", ":25002")
     if err != nil {
