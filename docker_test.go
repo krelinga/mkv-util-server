@@ -105,18 +105,33 @@ func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
 }
 
 func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
-    req := &pb.RunMkvToolNixCommandRequest{
-        Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
-        Args: []string{
-            "/testdata/sample_640x360.mkv",
-        },
-    }
-    resp, err := c.RunMkvToolNixCommand(context.Background(), req)
-    if err != nil || len(resp.Stdout) == 0 {
-        t.Errorf("Error calling mkvinfo: %s", err)
-        t.Errorf("Stdout:\n%s", resp.Stdout)
-        t.Errorf("Stderr:\n%s", resp.Stderr)
-    }
+    t.Run("File Exists", func(t *testing.T) {
+        req := &pb.RunMkvToolNixCommandRequest{
+            Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
+            Args: []string{
+                "/testdata/sample_640x360.mkv",
+            },
+        }
+        resp, err := c.RunMkvToolNixCommand(context.Background(), req)
+        if err != nil || len(resp.Stdout) == 0 {
+            t.Errorf("Error calling mkvinfo: %s", err)
+            t.Errorf("Stdout:\n%s", resp.Stdout)
+            t.Errorf("Stderr:\n%s", resp.Stderr)
+        }
+    })
+    t.Run("File does not exist", func(t *testing.T) {
+        req := &pb.RunMkvToolNixCommandRequest{
+            Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
+            Args: []string{
+                "/does/not/exist",
+            },
+        }
+        resp, err := c.RunMkvToolNixCommand(context.Background(), req)
+        if err == nil {
+            t.Errorf("Stdout:\n%s", resp.Stdout)
+            t.Errorf("Stderr:\n%s", resp.Stderr)
+        }
+    })
 }
 
 func TestDocker(t *testing.T) {
