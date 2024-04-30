@@ -4,11 +4,22 @@ import (
     "context"
     "errors"
     "fmt"
+    "log"
+    "os"
 
     "github.com/krelinga/mkv-util-server/pb"
 )
 
 func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, error) {
+    tmpDir, err := os.MkdirTemp("", "")
+    if err != nil {
+        return nil, fmt.Errorf("Could not create temporary directory: %e", err)
+    }
+    defer func() {
+        if err := os.RemoveAll(tmpDir); err != nil {
+            log.Printf("could not remove temp dir %s: %e", tmpDir, err)
+        }
+    }()
     return nil, errors.New("Not implemented")
 }
 
