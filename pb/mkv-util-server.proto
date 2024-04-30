@@ -33,8 +33,15 @@ message ConcatRequest {
 message ConcatReply {
 }
 
+message GetChaptersRequest {
+}
+
+message GetChaptersReply {
+}
+
 service MkvUtil {
     rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
     rpc RunMkvToolNixCommand(RunMkvToolNixCommandRequest) returns (RunMkvToolNixCommandReply) {}
     rpc Concat(ConcatRequest) returns (ConcatReply) {}
+    rpc GetChapters(GetChaptersRequest) returns (GetChaptersReply) {}
 }
