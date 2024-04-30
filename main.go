@@ -60,6 +60,10 @@ func (s *MkvUtilsServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvT
     }, err
 }
 
+func (s *MkvUtilsServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
+    return concat(ctx, r)
+}
+
 func MainOrError() error {
     lis, err := net.Listen("tcp", ":25002")
     if err != nil {

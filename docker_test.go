@@ -134,6 +134,14 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
     })
 }
 
+func testConcat(t *testing.T, c pb.MkvUtilsClient) {
+    req := &pb.ConcatRequest{}
+    _, err := c.Concat(context.Background(), req)
+    if err == nil {
+        t.Error("should have returned an error.")
+    }
+}
+
 func TestDocker(t *testing.T) {
     if testing.Short() {
         t.Skip()
@@ -159,5 +167,8 @@ func TestDocker(t *testing.T) {
     })
     t.Run("testRunMkvToolNixCommand", func(t *testing.T) {
         testRunMkvToolNixCommand(t, client)
+    })
+    t.Run("testConcat", func(t *testing.T) {
+        testConcat(t, client)
     })
 }
