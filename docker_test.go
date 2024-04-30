@@ -135,10 +135,16 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
 }
 
 func testConcat(t *testing.T, c pb.MkvUtilsClient) {
-    req := &pb.ConcatRequest{}
+    req := &pb.ConcatRequest{
+        InputPaths: []string{
+            "/testdata/sample_640x360.mkv",
+            "/testdata/sample_640x360.mkv",
+        },
+        OutputPath: "/testdata/out/concat.mkv",
+    }
     _, err := c.Concat(context.Background(), req)
-    if err == nil {
-        t.Error("should have returned an error.")
+    if err != nil {
+        t.Error(err)
     }
 }
 
