@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "github.com/krelinga/mkv-util-server/pb";
 
+import "google/protobuf/duration.proto";
+
 message GetFileSizeRequest {
     string path = 1;
 }
@@ -34,9 +36,32 @@ message ConcatReply {
 }
 
 message GetChaptersRequest {
+    string in_path = 1;
+    ChaptersFormat format = 2;
 }
 
 message GetChaptersReply {
+    Chapters chapters = 1;
+}
+
+enum ChaptersFormat {
+    CF_UNKNOWN = 0;
+    CF_SIMPLE = 1;
+    CF_XML = 2;
+}
+
+message Chapters {
+    ChaptersFormat format = 1;
+    SimpleChapters simple = 2;
+}
+
+message SimpleChapters {
+    message Chapter {
+        int32 number = 1;
+        string name = 2;
+        google.protobuf.Duration offset = 3;
+    }
+    repeated Chapter chapters = 1;
 }
 
 service MkvUtil {
