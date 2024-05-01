@@ -88,7 +88,7 @@ func (tc testContainer) Run(t *testing.T) {
     t.Log("Started Docker container.")
 }
 
-func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
+func testGetFileSize(t *testing.T, c pb.MkvUtilClient) {
     req := &pb.GetFileSizeRequest{
         Path: "/testdata/test.txt",
     }
@@ -107,7 +107,7 @@ func testGetFileSize(t *testing.T, c pb.MkvUtilsClient) {
     }
 }
 
-func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
+func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
     t.Run("File Exists", func(t *testing.T) {
         req := &pb.RunMkvToolNixCommandRequest{
             Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
@@ -137,7 +137,7 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilsClient) {
     })
 }
 
-func testConcat(t *testing.T, c pb.MkvUtilsClient) {
+func testConcat(t *testing.T, c pb.MkvUtilClient) {
     req := &pb.ConcatRequest{
         InputPaths: []string{
             "/testdata/sample_640x360.mkv",
@@ -172,7 +172,7 @@ func TestDocker(t *testing.T) {
     if err != nil {
         t.Fatalf("Could not dial target: %s", err)
     }
-    client := pb.NewMkvUtilsClient(conn)
+    client := pb.NewMkvUtilClient(conn)
 
     t.Run("testGetFileSize", func(t *testing.T) {
         testGetFileSize(t, client)

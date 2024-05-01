@@ -14,11 +14,11 @@ import (
     "google.golang.org/grpc"
 )
 
-type MkvUtilsServer struct {
-    pb.UnimplementedMkvUtilsServer
+type MkvUtilServer struct {
+    pb.UnimplementedMkvUtilServer
 }
 
-func (s *MkvUtilsServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest) (*pb.GetFileSizeReply, error) {
+func (s *MkvUtilServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest) (*pb.GetFileSizeReply, error) {
     stat, err := os.Stat(r.Path)
     if err != nil {
         return nil, err
@@ -28,7 +28,7 @@ func (s *MkvUtilsServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest
     }, nil
 }
 
-func (s *MkvUtilsServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvToolNixCommandRequest) (*pb.RunMkvToolNixCommandReply, error) {
+func (s *MkvUtilServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvToolNixCommandRequest) (*pb.RunMkvToolNixCommandReply, error) {
     var command string;
     switch r.Command {
     case pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO:
@@ -60,7 +60,7 @@ func (s *MkvUtilsServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvT
     }, err
 }
 
-func (s *MkvUtilsServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
+func (s *MkvUtilServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     return concat(ctx, r)
 }
 
@@ -70,7 +70,7 @@ func MainOrError() error {
         return err
     }
     grpcServer := grpc.NewServer()
-    pb.RegisterMkvUtilsServer(grpcServer, &MkvUtilsServer{})
+    pb.RegisterMkvUtilServer(grpcServer, &MkvUtilServer{})
     grpcServer.Serve(lis)  // Runs as long as the server is alive.
 
     return nil
