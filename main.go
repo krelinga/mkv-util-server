@@ -64,7 +64,7 @@ func (s *MkvUtilServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.Co
     return concat(ctx, r)
 }
 
-func (s *MkvUtilsServer) GetChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
+func (s *MkvUtilServer) GetChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
     return getChapters(ctx, r)
 }
 

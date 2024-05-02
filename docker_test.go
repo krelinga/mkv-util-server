@@ -151,7 +151,7 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
     }
 }
 
-func testGetChapters(t *testing.T, c pb.MkvUtilsClient) {
+func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
     req := &pb.GetChaptersRequest{}
     _, err := c.GetChapters(context.Background(), req)
     if err == nil {
