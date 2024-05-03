@@ -16,7 +16,7 @@ const (
 CHAPTER01NAME=Intro
 CHAPTER02=00:02:30.000
 CHAPTER02NAME=Baby prepares to rock
-CHAPTER03=00:02:42.300
+CHAPTER03=01:02:42.300
 CHAPTER03NAME=Baby rocks the house`
 )
 
@@ -50,10 +50,11 @@ func TestParseSimpleChapters(t *testing.T) {
             {
                 Number: 3,
                 Name: "Baby rocks the house",
-                Offset: unsafeProtoDuration("2m42s300ms"),
+                Offset: unsafeProtoDuration("1h2m42s300ms"),
             },
         },
     }
+    // TODO: diff ouptut for the `Offset` field is not very useful.
     if !cmp.Equal(expected, c, protocmp.Transform()) {
         t.Error(cmp.Diff(expected, c, protocmp.Transform()))
     }
