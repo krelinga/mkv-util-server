@@ -31,16 +31,6 @@ func parseChapterStartTime(t string) (time.Duration, error) {
 }
 
 func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
-//    extractInt := func(x string) (int, error) {
-//        if len(x) == 0 {
-//            return nil, errors.New("no match")
-//        }
-//        y, err := strconv.Atoi(x)
-//        if err != nil {
-//            return nil, fmt.Errorf("could not convert '%s' to an int: %e", x, err)
-//        }
-//        return y
-//    }
     scanner := bufio.NewScanner(r)
     first := true
     var part string

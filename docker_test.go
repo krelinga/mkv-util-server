@@ -9,10 +9,12 @@ import (
     "os/exec"
     "path/filepath"
 
+    "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
     "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/grpc"
     "google.golang.org/grpc/credentials/insecure"
+    "google.golang.org/protobuf/testing/protocmp"
 )
 
 type testContainer struct {
@@ -118,8 +120,10 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
         resp, err := c.RunMkvToolNixCommand(context.Background(), req)
         if err != nil || len(resp.Stdout) == 0 {
             t.Errorf("Error calling mkvinfo: %s", err)
-            t.Errorf("Stdout:\n%s", resp.Stdout)
-            t.Errorf("Stderr:\n%s", resp.Stderr)
+            if resp != nil {
+                t.Errorf("Stdout:\n%s", resp.Stdout)
+                t.Errorf("Stderr:\n%s", resp.Stderr)
+            }
         }
     })
     t.Run("File does not exist", func(t *testing.T) {
@@ -152,10 +156,22 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
 }
 
 func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.GetChaptersRequest{}
-    _, err := c.GetChapters(context.Background(), req)
-    if err == nil {
-        t.Error("Expected an error")
+    req := &pb.GetChaptersRequest{
+        InPath: "/testdata/sample_640x360.mkv",
+        Format: pb.ChaptersFormat_CF_SIMPLE,
+    }
+    resp, err := c.GetChapters(context.Background(), req)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    expected := &pb.GetChaptersReply {
+        Chapters: &pb.Chapters{
+            Format: pb.ChaptersFormat_CF_SIMPLE,
+        },
+    }
+    if !cmp.Equal(expected, resp, protocmp.Transform()) {
+        t.Error(cmp.Diff(expected, c, protocmp.Transform()))
     }
 }
 

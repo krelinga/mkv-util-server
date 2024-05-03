@@ -2,10 +2,11 @@ package main
 
 import (
     "context"
-    "errors"
     "fmt"
     "log"
     "os"
+    "os/exec"
+    "path/filepath"
 
     "github.com/krelinga/mkv-util-server/pb"
 )
@@ -20,7 +21,17 @@ func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, er
             log.Printf("could not remove temp dir %s: %e", tmpDir, err)
         }
     }()
-    return nil, errors.New("Not implemented")
+    chPath := filepath.Join(tmpDir, "chapters")
+    cmd := exec.CommandContext(ctx, "mkvextract", path, "-s", chPath)
+    if err := cmd.Run(); err != nil {
+        return nil, fmt.Errorf("Error running mkvextract: %e", err)
+    }
+    chFile, err := os.Open(chPath)
+    if err != nil {
+        return nil, fmt.Errorf("Could not open chapter file: %e", err)
+    }
+    defer chFile.Close()
+    return parseSimpleChapters(chFile)
 }
 
 func getChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
