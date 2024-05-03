@@ -1,0 +1,59 @@
+{
+  "attachments": [],
+  "chapters": [],
+  "container": {
+    "properties": {
+      "container_type": 17,
+      "duration": 13346000000,
+      "is_providing_timestamps": true,
+      "muxing_application": "Lavf57.83.100",
+      "segment_uid": "4ef80a631901b8c34656ef1dc6e052f6",
+      "writing_application": "Lavf57.83.100"
+    },
+    "recognized": true,
+    "supported": true,
+    "type": "Matroska"
+  },
+  "errors": [],
+  "file_name": "testdata/sample_640x360.mkv",
+  "global_tags": [
+    {
+      "num_entries": 4
+    }
+  ],
+  "identification_format_version": 14,
+  "track_tags": [
+    {
+      "num_entries": 3,
+      "track_id": 0
+    }
+  ],
+  "tracks": [
+    {
+      "codec": "AVC/H.264/MPEG-4p10",
+      "id": 0,
+      "properties": {
+        "codec_id": "V_MPEG4/ISO/AVC",
+        "codec_private_data": "0164001effe100186764001eacd940a02ff96100000303e90000ea600f162d9601000668ebe3cb22c0",
+        "codec_private_length": 41,
+        "default_duration": 33366666,
+        "default_track": true,
+        "display_dimensions": "640x360",
+        "display_unit": 4,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "und",
+        "minimum_timestamp": 0,
+        "number": 1,
+        "packetizer": "mpeg4_p10_video",
+        "pixel_dimensions": "640x360",
+        "tag_duration": "00:00:13.346000000",
+        "tag_encoder": "Lavc57.107.100 libx264",
+        "tag_handler_name": "L-SMASH Video Handler",
+        "uid": 1
+      },
+      "type": "video"
+    }
+  ],
+  "warnings": []
+}
