@@ -64,9 +64,16 @@ message SimpleChapters {
     repeated Chapter chapters = 1;
 }
 
+message GetInfoRequest {
+}
+
+message GetInfoReply {
+}
+
 service MkvUtil {
     rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
     rpc RunMkvToolNixCommand(RunMkvToolNixCommandRequest) returns (RunMkvToolNixCommandReply) {}
     rpc Concat(ConcatRequest) returns (ConcatReply) {}
     rpc GetChapters(GetChaptersRequest) returns (GetChaptersReply) {}
+    rpc GetInfo(GetInfoRequest) returns (GetInfoReply) {}
 }

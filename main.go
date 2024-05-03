@@ -68,6 +68,10 @@ func (s *MkvUtilServer) GetChapters(ctx context.Context, r *pb.GetChaptersReques
     return getChapters(ctx, r)
 }
 
+func (s *MkvUtilServer) GetInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error) {
+    return getInfo(ctx, r)
+}
+
 func MainOrError() error {
     lis, err := net.Listen("tcp", ":25002")
     if err != nil {

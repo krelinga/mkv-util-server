@@ -175,6 +175,14 @@ func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
     }
 }
 
+func testGetInfo(t *testing.T, c pb.MkvUtilClient) {
+    req := &pb.GetInfoRequest{}
+    _, err := c.GetInfo(context.Background(), req)
+    if err == nil {
+        t.Error("expected error")
+    }
+}
+
 func TestDocker(t *testing.T) {
     if testing.Short() {
         t.Skip()
@@ -206,5 +214,8 @@ func TestDocker(t *testing.T) {
     })
     t.Run("testConcat", func(t *testing.T) {
         testConcat(t, client)
+    })
+    t.Run("testGetInfo", func(t *testing.T) {
+        testGetInfo(t, client)
     })
 }
