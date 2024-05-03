@@ -73,7 +73,19 @@ func MainOrError() error {
     if err != nil {
         return err
     }
-    grpcServer := grpc.NewServer()
+    errHandler := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+        resp, err := handler(ctx, req)
+        if err == nil {
+            return resp, err
+        }
+        log.Printf("method %q failed: %s", info.FullMethod, err)
+        var exitError *exec.ExitError
+        if errors.As(err, &exitError) {
+            log.Printf("ExitError: %s", *exitError)
+        }
+        return resp, err
+    }
+    grpcServer := grpc.NewServer(grpc.UnaryInterceptor(errHandler))
     pb.RegisterMkvUtilServer(grpcServer, &MkvUtilServer{})
     grpcServer.Serve(lis)  // Runs as long as the server is alive.
 
