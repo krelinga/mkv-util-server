@@ -69,9 +69,11 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
             if num1 != num2 {
                 return nil, fmt.Errorf("Mismatched chapter numbers: %d vs %d", num1, num2)
             }
+            name := matches[4]
 
             c := &pb.SimpleChapters_Chapter{
                 Number: int32(num1),
+                Name: name,
                 Offset: durationpb.New(offset),
             }
             chapters.Chapters = append(chapters.Chapters, c)

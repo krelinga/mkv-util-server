@@ -39,14 +39,17 @@ func TestParseSimpleChapters(t *testing.T) {
         Chapters: []*pb.SimpleChapters_Chapter{
             {
                 Number: 1,
+                Name: "Intro",
                 Offset: unsafeProtoDuration("0"),
             },
             {
                 Number: 2,
+                Name: "Baby prepares to rock",
                 Offset: unsafeProtoDuration("2m30s"),
             },
             {
                 Number: 3,
+                Name: "Baby rocks the house",
                 Offset: unsafeProtoDuration("2m42s300ms"),
             },
         },
