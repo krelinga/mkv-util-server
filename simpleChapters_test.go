@@ -3,6 +3,12 @@ package main
 import (
     "strings"
     "testing"
+    "time"
+
+    "github.com/google/go-cmp/cmp"
+    "github.com/krelinga/mkv-util-server/pb"
+    "google.golang.org/protobuf/testing/protocmp"
+    "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -14,13 +20,35 @@ CHAPTER03=00:02:42.300
 CHAPTER03NAME=Baby rocks the house`
 )
 
+// Converts to a duration, panics on error
+func unsafeProtoDuration(s string) *durationpb.Duration {
+    d, err := time.ParseDuration(s)
+    if err != nil {
+        panic(err)
+    }
+    return durationpb.New(d)
+}
+
 func TestParseSimpleChapters(t *testing.T) {
     c, err := parseSimpleChapters(strings.NewReader(exampleSimpleChapters))
     if err != nil {
         t.Error(err)
         return
     }
-    if len(c.Chapters) != 3 {
-        t.Error(len(c.Chapters))
+    expected := &pb.SimpleChapters{
+        Chapters: []*pb.SimpleChapters_Chapter{
+            {
+                Offset: unsafeProtoDuration("0"),
+            },
+            {
+                Offset: unsafeProtoDuration("2m30s"),
+            },
+            {
+                Offset: unsafeProtoDuration("2m42s300ms"),
+            },
+        },
+    }
+    if !cmp.Equal(expected, c, protocmp.Transform()) {
+        t.Error(cmp.Diff(expected, c, protocmp.Transform()))
     }
 }

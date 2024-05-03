@@ -2,15 +2,16 @@ package main
 
 import (
     "bufio"
-    //"errors"
+    "errors"
     "fmt"
     "io"
     "regexp"
     //"strconv"
     "strings"
-    //"time"
+    "time"
 
     "github.com/krelinga/mkv-util-server/pb"
+    "google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
@@ -18,9 +19,16 @@ var (
 CHAPTER(\d+)NAME=(.+)`)
 )
 
-//func parseChapterStartTime(t string) (time.Duration, error) {
-//
-//}
+func parseChapterStartTime(t string) (time.Duration, error) {
+    if len(t) == 0 {
+        return 0, errors.New("no match")
+    }
+    t = strings.Replace(t, ":", "h", 1)
+    t = strings.Replace(t, ":", "m", 1)
+    t = strings.Replace(t, ".", "s", 1)
+    t += "ms"
+    return time.ParseDuration(t)
+}
 
 func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
 //    extractInt := func(x string) (int, error) {
@@ -46,8 +54,14 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
             if len(matches) != 5 {
                 return nil, fmt.Errorf("wrong number of matches: %d", len(matches))
             }
-
-            chapters.Chapters = append(chapters.Chapters, &pb.SimpleChapters_Chapter{})
+            offset, err := parseChapterStartTime(matches[2])
+            if err != nil {
+                return nil, fmt.Errorf("could not parse chapter start time: %e", err)
+            }
+            c := &pb.SimpleChapters_Chapter{
+                Offset: durationpb.New(offset),
+            }
+            chapters.Chapters = append(chapters.Chapters, c)
             part = ""
         }
         first = !first
