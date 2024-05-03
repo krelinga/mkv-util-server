@@ -4,10 +4,11 @@ import (
     "bytes"
     "context"
     "fmt"
-    "testing"
     "os"
     "os/exec"
     "path/filepath"
+    "testing"
+    "time"
 
     "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
@@ -15,6 +16,7 @@ import (
     "google.golang.org/grpc"
     "google.golang.org/grpc/credentials/insecure"
     "google.golang.org/protobuf/testing/protocmp"
+    "google.golang.org/protobuf/types/known/durationpb"
 )
 
 type testContainer struct {
@@ -32,6 +34,14 @@ func captureOutput(cmd *exec.Cmd) *bytes.Buffer {
     cmd.Stdout = cmdOutput
     cmd.Stderr = cmdOutput
     return cmdOutput
+}
+
+func unsafeDurationPb(s string) *durationpb.Duration {
+    d, err := time.ParseDuration(s)
+    if err != nil {
+        panic(err)
+    }
+    return durationpb.New(d)
 }
 
 func (tc testContainer) Build(t *testing.T) {
@@ -176,10 +186,21 @@ func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
 }
 
 func testGetInfo(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.GetInfoRequest{}
-    _, err := c.GetInfo(context.Background(), req)
-    if err == nil {
-        t.Error("expected error")
+    req := &pb.GetInfoRequest{
+        InPath: "/testdata/sample_640x360.mkv",
+    }
+    resp, err := c.GetInfo(context.Background(), req)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    exp := &pb.GetInfoReply{
+        Info: &pb.Info{
+            Duration: unsafeDurationPb("13s346ms"),
+        },
+    }
+    if !cmp.Equal(exp, resp, protocmp.Transform()) {
+        t.Error(cmp.Diff(exp, resp, protocmp.Transform()))
     }
 }
 
