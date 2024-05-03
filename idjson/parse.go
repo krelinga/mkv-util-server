@@ -25,6 +25,7 @@ func Parse(r io.Reader) (*MkvMerge, error) {
 var tagDurationRE = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\.\d{9}`)
 var (
     ParseTagDurationWrongFormat = errors.New("Wrong format, expected 00:00:00.000000000")
+    ParseTagDurationFinalFormatBug = errors.New("Wrong final format for string passed to time.ParseDuration().  This indicates a bug in ParseTagDuration().")
 )
 
 func (tp *TrackProperties) ParseTagDuration() (time.Duration, error) {
@@ -38,7 +39,7 @@ func (tp *TrackProperties) ParseTagDuration() (time.Duration, error) {
     dFormat += "ns"
     d, err := time.ParseDuration(dFormat)
     if err != nil {
-        return 0, fmt.Errorf("Could not parse final format: %s", dFormat)
+        return 0, ParseTagDurationFinalFormatBug
     }
     return d, nil
 }

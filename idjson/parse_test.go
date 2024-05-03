@@ -60,6 +60,10 @@ func TestParseTagDuration(t *testing.T) {
             Raw: "01:02:13.34600000",
             Err: ParseTagDurationWrongFormat,
         },
+        {
+            Raw: "1:2:13.346000000",
+            Err: ParseTagDurationWrongFormat,
+        },
     }
     for _, c := range cases {
         c := c
