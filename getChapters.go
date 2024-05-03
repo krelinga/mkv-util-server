@@ -2,6 +2,7 @@ package main
 
 import (
     "context"
+    "errors"
     "fmt"
     "log"
     "os"
@@ -22,12 +23,17 @@ func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, er
         }
     }()
     chPath := filepath.Join(tmpDir, "chapters")
-    cmd := exec.CommandContext(ctx, "mkvextract", path, "-s", chPath)
+    cmd := exec.CommandContext(ctx, "mkvextract", path, "chapters", "-s", chPath)
     if err := cmd.Run(); err != nil {
         return nil, fmt.Errorf("Error running mkvextract: %e", err)
     }
     chFile, err := os.Open(chPath)
     if err != nil {
+        if errors.Is(err, os.ErrNotExist) {
+            // special case: if no chapters were found then no output file is
+            // produced.
+            return &pb.SimpleChapters{}, nil
+        }
         return nil, fmt.Errorf("Could not open chapter file: %e", err)
     }
     defer chFile.Close()
