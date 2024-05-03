@@ -2,20 +2,37 @@ package main
 
 import (
     "bufio"
+    //"errors"
     "fmt"
     "io"
     "regexp"
+    //"strconv"
     "strings"
+    //"time"
 
     "github.com/krelinga/mkv-util-server/pb"
 )
 
 var (
-    simpleChapterRe = regexp.MustCompile(`^CHAPTER(\d+)=(\d)+:(\d+):(\d+)\.(\d+)
+    simpleChapterRe = regexp.MustCompile(`^CHAPTER(\d+)=(\d+:\d+:\d+\.\d+)
 CHAPTER(\d+)NAME=(.+)`)
 )
 
+//func parseChapterStartTime(t string) (time.Duration, error) {
+//
+//}
+
 func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
+//    extractInt := func(x string) (int, error) {
+//        if len(x) == 0 {
+//            return nil, errors.New("no match")
+//        }
+//        y, err := strconv.Atoi(x)
+//        if err != nil {
+//            return nil, fmt.Errorf("could not convert '%s' to an int: %e", x, err)
+//        }
+//        return y
+//    }
     scanner := bufio.NewScanner(r)
     first := true
     var part string
@@ -26,11 +43,10 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
         } else {
             part = strings.Join([]string{part, scanner.Text()}, "\n")
             matches := simpleChapterRe.FindStringSubmatch(part)
-            for i, match := range matches {
-                if len(match) == 0 {
-                    return nil, fmt.Errorf("Could not match part %d", i)
-                }
+            if len(matches) != 5 {
+                return nil, fmt.Errorf("wrong number of matches: %d", len(matches))
             }
+
             chapters.Chapters = append(chapters.Chapters, &pb.SimpleChapters_Chapter{})
             part = ""
         }
