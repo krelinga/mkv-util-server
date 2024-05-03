@@ -58,4 +58,6 @@ func TestParseSimpleChapters(t *testing.T) {
     if !cmp.Equal(expected, c, protocmp.Transform()) {
         t.Error(cmp.Diff(expected, c, protocmp.Transform()))
     }
+
+    // TODO: test cases to exercise all of the error detection logic?
 }
