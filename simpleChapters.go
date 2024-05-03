@@ -6,7 +6,7 @@ import (
     "fmt"
     "io"
     "regexp"
-    //"strconv"
+    "strconv"
     "strings"
     "time"
 
@@ -58,7 +58,20 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
             if err != nil {
                 return nil, fmt.Errorf("could not parse chapter start time: %e", err)
             }
+            num1, err := strconv.Atoi(matches[1])
+            if err != nil {
+                return nil, fmt.Errorf("Could not extract 1st chapter number: %e", err)
+            }
+            num2, err := strconv.Atoi(matches[3])
+            if err != nil {
+                return nil, fmt.Errorf("Could not extract 2nd chapter number: %e", err)
+            }
+            if num1 != num2 {
+                return nil, fmt.Errorf("Mismatched chapter numbers: %d vs %d", num1, num2)
+            }
+
             c := &pb.SimpleChapters_Chapter{
+                Number: int32(num1),
                 Offset: durationpb.New(offset),
             }
             chapters.Chapters = append(chapters.Chapters, c)

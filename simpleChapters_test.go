@@ -38,12 +38,15 @@ func TestParseSimpleChapters(t *testing.T) {
     expected := &pb.SimpleChapters{
         Chapters: []*pb.SimpleChapters_Chapter{
             {
+                Number: 1,
                 Offset: unsafeProtoDuration("0"),
             },
             {
+                Number: 2,
                 Offset: unsafeProtoDuration("2m30s"),
             },
             {
+                Number: 3,
                 Offset: unsafeProtoDuration("2m42s300ms"),
             },
         },
