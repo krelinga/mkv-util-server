@@ -21,6 +21,14 @@ func unsafeOpenTestData() io.ReadCloser {
     return f
 }
 
+func unsafeDuration(s string) time.Duration {
+    d, err := time.ParseDuration(s)
+    if err != nil {
+        panic(err)
+    }
+    return d
+}
+
 func TestParse(t *testing.T) {
     t.Parallel()
     f := unsafeOpenTestData()
@@ -85,5 +93,21 @@ func TestParseTagDuration(t *testing.T) {
                 }
             }
         })
+    }
+}
+
+func TestParseDuration(t *testing.T) {
+    t.Parallel()
+    cp := &ContainerProperties{
+        Duration: 13346000000,
+    }
+    exp := unsafeDuration("13s346ms")
+    act, err := cp.ParseDuration()
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    if act != exp {
+        t.Error(act)
     }
 }

@@ -43,3 +43,7 @@ func (tp *TrackProperties) ParseTagDuration() (time.Duration, error) {
     }
     return d, nil
 }
+
+func (cp *ContainerProperties) ParseDuration() (time.Duration, error) {
+    return time.ParseDuration(fmt.Sprintf("%dns", cp.Duration))
+}

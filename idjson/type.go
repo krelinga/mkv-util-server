@@ -12,3 +12,11 @@ type Track struct {
 type TrackProperties struct {
     TagDuration string `json:"tag_duration"`
 }
+
+type Container struct {
+    Properties ContainerProperties
+}
+
+type ContainerProperties struct {
+    Duration int
+}
