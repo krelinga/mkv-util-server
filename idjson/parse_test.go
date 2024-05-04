@@ -39,6 +39,11 @@ func TestParse(t *testing.T) {
         t.Error(err)
     }
     expected := &MkvMerge{
+        Container: &Container{
+            Properties: &ContainerProperties{
+                Duration: 13346000000,
+            },
+        },
         Tracks: []*Track{
             {
                 Type: "video",

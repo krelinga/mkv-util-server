@@ -2,6 +2,7 @@ package idjson
 
 type MkvMerge struct {
     Tracks []*Track
+    Container *Container
 }
 
 type Track struct {
@@ -14,7 +15,7 @@ type TrackProperties struct {
 }
 
 type Container struct {
-    Properties ContainerProperties
+    Properties *ContainerProperties
 }
 
 type ContainerProperties struct {
