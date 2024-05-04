@@ -3,7 +3,6 @@ package main
 import (
     "bytes"
     "context"
-    "errors"
     "fmt"
     "os/exec"
 
@@ -33,11 +32,7 @@ func getInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error
     if err != nil {
         return nil, fmt.Errorf("Could not parse mkvmerge output: %e", err)
     }
-    vt := findFirstVideoTrack(j)
-    if vt == nil {
-        return nil, errors.New("MKV file had no video tracks.")
-    }
-    d, err := vt.Properties.ParseTagDuration()
+    d, err := j.Container.Properties.ParseDuration()
     if err != nil {
         return nil, fmt.Errorf("Could not convert mkvmerge output to a time.Duration: %e", err)
     }
