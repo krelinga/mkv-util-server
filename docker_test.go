@@ -36,12 +36,28 @@ func captureOutput(cmd *exec.Cmd) *bytes.Buffer {
     return cmdOutput
 }
 
-func unsafeDurationPb(s string) *durationpb.Duration {
+func unsafeDuration(s string) time.Duration {
     d, err := time.ParseDuration(s)
     if err != nil {
         panic(err)
     }
-    return durationpb.New(d)
+    return d
+}
+
+func unsafeDurationPb(s string) *durationpb.Duration {
+    return durationpb.New(unsafeDuration(s))
+}
+
+func readDuration(t *testing.T, mkvPath string, c pb.MkvUtilClient) time.Duration {
+    t.Helper()
+    req := &pb.GetInfoRequest{
+        InPath: mkvPath,
+    }
+    repl, err := c.GetInfo(context.Background(), req)
+    if err != nil {
+        t.Fatal(err)
+    }
+    return repl.Info.Duration.AsDuration()
 }
 
 func (tc testContainer) Build(t *testing.T) {
@@ -152,16 +168,24 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
 }
 
 func testConcat(t *testing.T, c pb.MkvUtilClient) {
+    outPath := "/testdata/out/concat.mkv"
     req := &pb.ConcatRequest{
         InputPaths: []string{
             "/testdata/sample_640x360.mkv",
             "/testdata/sample_640x360.mkv",
         },
-        OutputPath: "/testdata/out/concat.mkv",
+        OutputPath: outPath,
     }
     _, err := c.Concat(context.Background(), req)
     if err != nil {
         t.Error(err)
+        return
+    }
+
+    d := readDuration(t, outPath, c)
+    expD := unsafeDuration("26s692ms")
+    if d != expD {
+        t.Error(d)
     }
 }
 
