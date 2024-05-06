@@ -76,3 +76,27 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
     }
     return chapters, nil
 }
+
+func writeSimpleChapters(w io.Writer, ch *pb.SimpleChapters) error {
+    h := func(d time.Duration) int {
+        return int(d.Truncate(time.Hour) / time.Hour)
+    }
+    m := func(d time.Duration) int {
+        return int((d.Truncate(time.Minute) % time.Hour) / time.Minute)
+    }
+    s := func(d time.Duration) int {
+        return int((d.Truncate(time.Second) % time.Minute) / time.Second)
+    }
+    ms := func(d time.Duration) int {
+        return int((d.Truncate(time.Millisecond) % time.Second) / time.Millisecond)
+    }
+    for _, c := range ch.Chapters {
+        d := c.Offset.AsDuration()
+        sd := fmt.Sprintf("%02d:%02d:%02d.%03d", h(d), m(d), s(d), ms(d))
+        _, err := fmt.Fprintf(w, "CHAPTER%02d=%s\nCHAPTER%02dNAME=%s\n", c.Number, sd, c.Number, c.Name)
+        if err != nil {
+            return err
+        }
+    }
+    return nil
+}

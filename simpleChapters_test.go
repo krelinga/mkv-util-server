@@ -30,6 +30,7 @@ func unsafeProtoDuration(s string) *durationpb.Duration {
 }
 
 func TestParseSimpleChapters(t *testing.T) {
+    t.Parallel()
     c, err := parseSimpleChapters(strings.NewReader(exampleSimpleChapters))
     if err != nil {
         t.Error(err)
@@ -60,4 +61,36 @@ func TestParseSimpleChapters(t *testing.T) {
     }
 
     // TODO: test cases to exercise all of the error detection logic?
+}
+
+func TestWriteSimpleChapters(t *testing.T) {
+    t.Parallel()
+    in := &pb.SimpleChapters{
+        Chapters: []*pb.SimpleChapters_Chapter{
+            {
+                Number: 1,
+                Name: "taters",
+                Offset: unsafeProtoDuration("0s"),
+            },
+            {
+                Number: 2,
+                Name: "pie",
+                Offset: unsafeProtoDuration("4h10m31s15ms"),
+            },
+        },
+    }
+    expected := `CHAPTER01=00:00:00.000
+CHAPTER01NAME=taters
+CHAPTER02=04:10:31.015
+CHAPTER02NAME=pie
+`
+    sb := strings.Builder{}
+    if err := writeSimpleChapters(&sb, in); err != nil {
+        t.Error(err)
+        return
+    }
+    actual := sb.String()
+    if !cmp.Equal(expected, actual) {
+        t.Error(cmp.Diff(expected, actual))
+    }
 }
