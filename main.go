@@ -82,7 +82,7 @@ func MainOrError() error {
         if err == nil {
             return resp, err
         }
-        log.Printf("method %q failed: %s", info.FullMethod, err)
+        log.Printf("method %q failed: %s, req: %v", info.FullMethod, err, req)
         var exitError *exec.ExitError
         if errors.As(err, &exitError) {
             log.Printf("ExitError: %s", *exitError)
