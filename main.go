@@ -72,6 +72,10 @@ func (s *MkvUtilServer) GetInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.
     return getInfo(ctx, r)
 }
 
+func (s *MkvUtilServer) Split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
+    return split(ctx, r)
+}
+
 func MainOrError() error {
     lis, err := net.Listen("tcp", ":25002")
     if err != nil {

@@ -341,6 +341,14 @@ func testGetInfo(t *testing.T, c pb.MkvUtilClient) {
     }
 }
 
+func testSplit(t *testing.T, c pb.MkvUtilClient) {
+    req := &pb.SplitRequest{}
+    _, err := c.Split(context.Background(), req)
+    if err == nil {
+        t.Error("Expected an error.")
+    }
+}
+
 func TestDocker(t *testing.T) {
     if testing.Short() {
         t.Skip()
@@ -375,5 +383,8 @@ func TestDocker(t *testing.T) {
     })
     t.Run("testGetInfo", func(t *testing.T) {
         testGetInfo(t, client)
+    })
+    t.Run("testSplit", func(t *testing.T) {
+        testSplit(t, client)
     })
 }
