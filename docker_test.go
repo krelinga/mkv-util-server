@@ -198,27 +198,29 @@ func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
 }
 
 func testConcat(t *testing.T, c pb.MkvUtilClient) {
-    inPath := "/testdata/sample_640x360.mkv"
-    outPath:= unsafeOutputPath(t, "concat.mkv")
-    req := &pb.ConcatRequest{
-        InputPaths: []string{inPath, inPath},
-        OutputPath: outPath,
-    }
-    _, err := c.Concat(context.Background(), req)
-    if err != nil {
-        t.Error(err)
-        return
-    }
+    t.Run("chapters_added_to_chapterless_file", func(t *testing.T) {
+        inPath := "/testdata/sample_640x360.mkv"
+        outPath:= unsafeOutputPath(t, "concat.mkv")
+        req := &pb.ConcatRequest{
+            InputPaths: []string{inPath, inPath},
+            OutputPath: outPath,
+        }
+        _, err := c.Concat(context.Background(), req)
+        if err != nil {
+            t.Error(err)
+            return
+        }
 
-    d := readDuration(t, outPath, c)
-    expD := unsafeDuration("26s692ms")
-    if d != expD {
-        t.Error(d)
-    }
+        d := readDuration(t, outPath, c)
+        expD := unsafeDuration("26s692ms")
+        if d != expD {
+            t.Error(d)
+        }
 
-    if cnt := countChapters(t, outPath, c); cnt != 2 {
-        t.Errorf("Expected 2 chapters in output, saw %d", cnt)
-    }
+        if cnt := countChapters(t, outPath, c); cnt != 2 {
+            t.Errorf("Expected 2 chapters in output, saw %d", cnt)
+        }
+    })
 }
 
 func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
