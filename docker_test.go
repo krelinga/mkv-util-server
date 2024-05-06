@@ -183,7 +183,7 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
     })
 }
 
-func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
+func readChapters(t *testing.T, p string, c pb.MkvUtilClient) *pb.SimpleChapters {
     t.Helper()
     req := &pb.GetChaptersRequest{
         InPath: p,
@@ -192,9 +192,14 @@ func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
     resp, err := c.GetChapters(context.Background(), req)
     if err != nil {
         t.Errorf("Could not get chapters in %s: %s", p, err)
-        return -1
+        return &pb.SimpleChapters{}
     }
-    return len(resp.Chapters.Simple.Chapters)
+    return resp.Chapters.Simple
+}
+
+func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
+    t.Helper()
+    return len(readChapters(t, p, c).Chapters)
 }
 
 func testConcat(t *testing.T, c pb.MkvUtilClient) {
@@ -219,6 +224,65 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
 
         if cnt := countChapters(t, outPath, c); cnt != 2 {
             t.Errorf("Expected 2 chapters in output, saw %d", cnt)
+        }
+    })
+    t.Run("existing_chapters_preserved", func(t *testing.T) {
+        outPath:= unsafeOutputPath(t, "concat.mkv")
+        req := &pb.ConcatRequest{
+            InputPaths: []string{
+                "/testdata/3_chapters.mkv",
+                "/testdata/4_chapters.mkv",
+            },
+            OutputPath: outPath,
+        }
+        _, err := c.Concat(context.Background(), req)
+        if err != nil {
+            t.Error(err)
+            return
+        }
+
+        actualChapters := readChapters(t, outPath, c)
+        expectedChaptres := &pb.SimpleChapters{
+            Chapters: []*pb.SimpleChapters_Chapter{
+                {
+                    Number: 1,
+                    Name: "Chapter 01",
+                    Offset: durationpb.New(0),
+                },
+                {
+                    Number: 2,
+                    Name: "Chapter 02",
+                    Offset: unsafeDurationPb("13.346s"),
+                },
+                {
+                    Number: 3,
+                    Name: "Chapter 03",
+                    Offset: unsafeDurationPb("26.693s"),
+                },
+                {
+                    Number: 4,
+                    Name: "Chapter 04",
+                    Offset: unsafeDurationPb("40.039s"),
+                },
+                {
+                    Number: 5,
+                    Name: "Chapter 05",
+                    Offset: unsafeDurationPb("53.385s"),
+                },
+                {
+                    Number: 6,
+                    Name: "Chapter 06",
+                    Offset: unsafeDurationPb("66.732s"),
+                },
+                {
+                    Number: 7,
+                    Name: "Chapter 07",
+                    Offset: unsafeDurationPb("80.078s"),
+                },
+            },
+        }
+        if !cmp.Equal(expectedChaptres, actualChapters, protocmp.Transform()) {
+            t.Errorf(cmp.Diff(expectedChaptres, actualChapters, protocmp.Transform()))
         }
     })
 }

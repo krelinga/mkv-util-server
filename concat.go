@@ -122,6 +122,7 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
         "--chapters", chPath,
     }
     for i, p := range r.InputPaths {
+        args = append(args, "--no-chapters")
         if i > 0 {
             args = append(args, "+")
         }
