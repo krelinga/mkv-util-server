@@ -18,6 +18,7 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     type input struct {
         Path string
         Duration time.Duration
+        Chapters *pb.SimpleChapters
     }
     inputs := []*input{}
     wg := sync.WaitGroup{}
@@ -40,6 +41,20 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
             }
             i.Duration = resp.Info.Duration.AsDuration()
         }()
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            req := &pb.GetChaptersRequest{
+                InPath: i.Path,
+                Format: pb.ChaptersFormat_CF_SIMPLE,
+            }
+            resp, err := getChapters(ctx, req)
+            if err != nil {
+                cancel(err)
+                return
+            }
+            i.Chapters = resp.Chapters.Simple
+        }()
     }
     wg.Wait()
     // See if anything went wrong during the info gathering.
@@ -47,26 +62,36 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
         return nil, err
     }
 
-    chapterName := func(i int) string {
+
+    // Make sure there's a zero-offset chapter at the beginning of every input.
+    for _, i := range inputs {
+        cs := &i.Chapters.Chapters
+        if len(*cs) == 0 || (*cs)[0].Offset.AsDuration() != time.Duration(0) {
+            zeroC := &pb.SimpleChapters_Chapter{
+                Offset: durationpb.New(0),
+            }
+            *cs = append([]*pb.SimpleChapters_Chapter{zeroC,}, (*cs)...)
+        }
+    }
+
+    // Build final chapters, updating the offset of each chapter by the duration
+    // of the videos that came before it.
+    chapterName := func(i int32) string {
         return fmt.Sprintf("Chapter %02d", i)
     }
-    // First chapter always begins at the start of the file.
-    chaps := &pb.SimpleChapters{
-        Chapters: []*pb.SimpleChapters_Chapter{
-            {
-                Number: 1,
-                Name: chapterName(1),
-                Offset: durationpb.New(0),
-            },
-        },
-    }
-    // Subsequent chapters begin at the end of every previous input.
-    for i := 1; i < len(inputs); i++ {
-        chaps.Chapters = append(chaps.Chapters, &pb.SimpleChapters_Chapter{
-            Number: int32(i + 1),
-            Name: chapterName(i + 1),
-            Offset: durationpb.New(inputs[i - 1].Duration),
-        })
+    chapterNum := int32(1)
+    chaps := &pb.SimpleChapters{}
+    cumD := time.Duration(0)
+    for _, i := range inputs {
+        for _, ic := range i.Chapters.Chapters {
+            chaps.Chapters = append(chaps.Chapters, &pb.SimpleChapters_Chapter{
+                Number: chapterNum,
+                Name: chapterName(chapterNum),
+                Offset: durationpb.New(cumD + ic.Offset.AsDuration()),
+            })
+            chapterNum++
+        }
+        cumD += i.Duration
     }
 
     // Store the chapters file out on disk
