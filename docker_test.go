@@ -242,6 +242,11 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
         }
 
         actualChapters := readChapters(t, outPath, c)
+        // TODO: Ideally we could test that each of these chapters are some
+        // integer multiple of the sample file length, but it seems that due
+        // to some accident of rounting somewhere, we get off by a millisecond
+        // or two.  Not worth worrying about now, but would be good to track
+        // down and fix eventually.
         expectedChaptres := &pb.SimpleChapters{
             Chapters: []*pb.SimpleChapters_Chapter{
                 {
