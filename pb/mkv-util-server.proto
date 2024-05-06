@@ -76,10 +76,17 @@ message Info {
     google.protobuf.Duration duration = 1;
 }
 
+message SplitRequest {
+}
+
+message SplitReply {
+}
+
 service MkvUtil {
     rpc GetFileSize(GetFileSizeRequest) returns (GetFileSizeReply) {}
     rpc RunMkvToolNixCommand(RunMkvToolNixCommandRequest) returns (RunMkvToolNixCommandReply) {}
     rpc Concat(ConcatRequest) returns (ConcatReply) {}
     rpc GetChapters(GetChaptersRequest) returns (GetChaptersReply) {}
     rpc GetInfo(GetInfoRequest) returns (GetInfoReply) {}
+    rpc Split(SplitRequest) returns (SplitReply) {}
 }
