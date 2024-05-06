@@ -77,6 +77,16 @@ message Info {
 }
 
 message SplitRequest {
+    string in_path = 1;
+    message ByChapters {
+        // If not specified, will split from the beginning of the file.
+        int32 start_chapter = 1;
+        // If not specified, will split until the end of the file.
+        int32 limit_chapter = 2;
+
+        string out_path = 3;
+    }
+    repeated ByChapters by_chapters = 2;
 }
 
 message SplitReply {
