@@ -290,6 +290,16 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
             t.Errorf(cmp.Diff(expectedChaptres, actualChapters, protocmp.Transform()))
         }
     })
+    t.Run("no_input_files_given", func(t *testing.T) {
+        outPath:= unsafeOutputPath(t, "concat.mkv")
+        req := &pb.ConcatRequest{
+            OutputPath: outPath,
+        }
+        _, err := c.Concat(context.Background(), req)
+        if err == nil {
+            t.Error("Expected an error.")
+        }
+    })
 }
 
 func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
