@@ -60,6 +60,22 @@ func readDuration(t *testing.T, mkvPath string, c pb.MkvUtilClient) time.Duratio
     return repl.Info.Duration.AsDuration()
 }
 
+func unsafeOutputPath(t *testing.T, suffix string) string {
+    wd, err := os.Getwd()
+    if err != nil {
+        t.Fatalf("could not get working directory: %s", err)
+    }
+    localTestdataPath := filepath.Join(wd, "testdata")
+    dockerTestDataPath := "/testdata"
+    // localDir will be evaluated in this process.
+    localDir := filepath.Join(localTestdataPath, "out", t.Name())
+    if err := os.MkdirAll(localDir, 0756); err != nil {
+        panic(err)
+    }
+    // returned path will be evaluated in the docker container.
+    return filepath.Join(dockerTestDataPath, "out", t.Name(), suffix)
+}
+
 func (tc testContainer) Build(t *testing.T) {
     t.Helper()
     cmd := exec.Command("docker", "image", "build", "-t", tc.containerId, ".")
@@ -183,7 +199,7 @@ func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
 
 func testConcat(t *testing.T, c pb.MkvUtilClient) {
     inPath := "/testdata/sample_640x360.mkv"
-    outPath:= "/testdata/out/concat.mkv"
+    outPath:= unsafeOutputPath(t, "concat.mkv")
     req := &pb.ConcatRequest{
         InputPaths: []string{inPath, inPath},
         OutputPath: outPath,
