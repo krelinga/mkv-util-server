@@ -167,13 +167,25 @@ func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
     })
 }
 
+func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
+    t.Helper()
+    req := &pb.GetChaptersRequest{
+        InPath: p,
+        Format: pb.ChaptersFormat_CF_SIMPLE,
+    }
+    resp, err := c.GetChapters(context.Background(), req)
+    if err != nil {
+        t.Errorf("Could not get chapters in %s: %s", p, err)
+        return -1
+    }
+    return len(resp.Chapters.Simple.Chapters)
+}
+
 func testConcat(t *testing.T, c pb.MkvUtilClient) {
-    outPath := "/testdata/out/concat.mkv"
+    inPath := "/testdata/sample_640x360.mkv"
+    outPath:= "/testdata/out/concat.mkv"
     req := &pb.ConcatRequest{
-        InputPaths: []string{
-            "/testdata/sample_640x360.mkv",
-            "/testdata/sample_640x360.mkv",
-        },
+        InputPaths: []string{inPath, inPath},
         OutputPath: outPath,
     }
     _, err := c.Concat(context.Background(), req)
@@ -186,6 +198,10 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
     expD := unsafeDuration("26s692ms")
     if d != expD {
         t.Error(d)
+    }
+
+    if cnt := countChapters(t, outPath, c); cnt != 2 {
+        t.Errorf("Expected 2 chapters in output, saw %d", cnt)
     }
 }
 

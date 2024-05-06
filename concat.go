@@ -10,6 +10,7 @@ import (
 func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     args := []string{
         "-o", r.OutputPath,
+        "--generate-chapters", "when-appending",
     }
     for i, p := range r.InputPaths {
         if i > 0 {
