@@ -15,6 +15,22 @@ import (
     "github.com/krelinga/mkv-util-server/pb"
 )
 
+func splitOffset(d time.Duration) string {
+    h := func(d time.Duration) int {
+        return int(d.Truncate(time.Hour) / time.Hour)
+    }
+    m := func(d time.Duration) int {
+        return int((d.Truncate(time.Minute) % time.Hour) / time.Minute)
+    }
+    s := func(d time.Duration) int {
+        return int((d.Truncate(time.Second) % time.Minute) / time.Second)
+    }
+    ms := func(d time.Duration) int {
+        return int((d.Truncate(time.Millisecond) % time.Second) / time.Millisecond)
+    }
+    return fmt.Sprintf("%02d:%02d:%02d.%03d", h(d), m(d), s(d), ms(d))
+}
+
 func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
     chaps, err := getChapters(ctx, &pb.GetChaptersRequest{
         Format: pb.ChaptersFormat_CF_SIMPLE,
@@ -110,11 +126,11 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
             sb := strings.Builder{}
             sb.WriteString("parts:")
             if o.Begin != time.Duration(0) {
-                sb.WriteString(o.Begin.String())
+                sb.WriteString(splitOffset(o.Begin))
             }
             sb.WriteString("-")
             if o.End != time.Duration(0) {
-                sb.WriteString(o.End.String())
+                sb.WriteString(splitOffset(o.End))
             }
             args := []string{
                 "-o", o.Path,
