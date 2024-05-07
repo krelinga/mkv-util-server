@@ -396,6 +396,11 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
             t.Error(err)
             return
         }
+        actualD := readDuration(t, outPath, c)
+        expectedD := unsafeDuration("26.693s")
+        if actualD != expectedD {
+            t.Error(actualD.String())
+        }
     })
 }
 
