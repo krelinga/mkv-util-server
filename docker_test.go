@@ -349,6 +349,34 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
             t.Error("Expected an error.")
         }
     })
+    t.Run("start_too_high_causes_error", func(t *testing.T) {
+        req := &pb.SplitRequest{
+            InPath: "/testdata/3_chapters.mkv",
+            ByChapters: []*pb.SplitRequest_ByChapters{
+                {
+                    Start: 10,
+                },
+            },
+        }
+        _, err := c.Split(context.Background(), req)
+        if err == nil {
+            t.Error("Expected an error.")
+        }
+    })
+    t.Run("limit_too_high_causes_error", func(t *testing.T) {
+        req := &pb.SplitRequest{
+            InPath: "/testdata/3_chapters.mkv",
+            ByChapters: []*pb.SplitRequest_ByChapters{
+                {
+                    Limit: 10,
+                },
+            },
+        }
+        _, err := c.Split(context.Background(), req)
+        if err == nil {
+            t.Error("Expected an error.")
+        }
+    })
 }
 
 func TestDocker(t *testing.T) {
