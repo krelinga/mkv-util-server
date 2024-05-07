@@ -69,7 +69,7 @@ func unsafeOutputPath(t *testing.T, suffix string) string {
     dockerTestDataPath := "/testdata"
     // localDir will be evaluated in this process.
     localDir := filepath.Join(localTestdataPath, "out", t.Name())
-    if err := os.MkdirAll(localDir, 0756); err != nil {
+    if err := os.MkdirAll(localDir, 0755); err != nil {
         panic(err)
     }
     // returned path will be evaluated in the docker container.
