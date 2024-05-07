@@ -342,11 +342,13 @@ func testGetInfo(t *testing.T, c pb.MkvUtilClient) {
 }
 
 func testSplit(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.SplitRequest{}
-    _, err := c.Split(context.Background(), req)
-    if err == nil {
-        t.Error("Expected an error.")
-    }
+    t.Run("empty_in_path_causes_error", func(t *testing.T) {
+        req := &pb.SplitRequest{}
+        _, err := c.Split(context.Background(), req)
+        if err == nil {
+            t.Error("Expected an error.")
+        }
+    })
 }
 
 func TestDocker(t *testing.T) {
