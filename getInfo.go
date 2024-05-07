@@ -26,15 +26,15 @@ func getInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error
     b := bytes.Buffer{}
     cmd.Stdout = &b
     if err := cmd.Run(); err != nil {
-        return nil, fmt.Errorf("Could not run mkvmerge: %e", err)
+        return nil, fmt.Errorf("Could not run mkvmerge: %w", err)
     }
     j, err := idjson.Parse(&b)
     if err != nil {
-        return nil, fmt.Errorf("Could not parse mkvmerge output: %e", err)
+        return nil, fmt.Errorf("Could not parse mkvmerge output: %w", err)
     }
     d, err := j.Container.Properties.ParseDuration()
     if err != nil {
-        return nil, fmt.Errorf("Could not convert mkvmerge output to a time.Duration: %e", err)
+        return nil, fmt.Errorf("Could not convert mkvmerge output to a time.Duration: %w", err)
     }
     resp := &pb.GetInfoReply{
         Info: &pb.Info{
