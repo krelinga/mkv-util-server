@@ -3,6 +3,7 @@ package main
 import (
     "context"
     "fmt"
+    "log"
     "os/exec"
     "strings"
     "sync"
@@ -13,6 +14,7 @@ import (
 
 func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
     chaps, err := getChapters(ctx, &pb.GetChaptersRequest{
+        Format: pb.ChaptersFormat_CF_SIMPLE,
         InPath: r.InPath,
     })
     if err != nil {
@@ -64,8 +66,15 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
             if o.End != time.Duration(0) {
                 sb.WriteString(o.End.String())
             }
-            args := []string{"split", sb.String()}
+            args := []string{
+                "-o", o.Path,
+                "--split",
+                sb.String(),
+                r.InPath,
+            }
             cmd := exec.CommandContext(ctx, "mkvmerge", args...)
+            cmd.Stderr = log.Default().Writer()
+            cmd.Stdout = log.Default().Writer()
             if err := cmd.Run(); err != nil {
                 cancel(err)
                 return
