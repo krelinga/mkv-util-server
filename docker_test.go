@@ -355,6 +355,7 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
             ByChapters: []*pb.SplitRequest_ByChapters{
                 {
                     Start: 10,
+                    OutPath: unsafeOutputPath(t, "split.mkv"),
                 },
             },
         }
@@ -369,6 +370,7 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
             ByChapters: []*pb.SplitRequest_ByChapters{
                 {
                     Limit: 10,
+                    OutPath: unsafeOutputPath(t, "split.mkv"),
                 },
             },
         }
