@@ -401,6 +401,25 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
         if actualD != expectedD {
             t.Error(actualD.String())
         }
+
+        expectedChaps := &pb.SimpleChapters{
+            Chapters: []*pb.SimpleChapters_Chapter{
+                {
+                    Number: 1,
+                    Name: "Chapter 01",
+                    Offset: unsafeDurationPb("0s"),
+                },
+                {
+                    Number: 2,
+                    Name: "Chapter 02",
+                    Offset: unsafeDurationPb("13.347s"),
+                },
+            },
+        }
+        actualChaps := readChapters(t, outPath, c)
+        if !cmp.Equal(expectedChaps, actualChaps, protocmp.Transform()) {
+            t.Error(cmp.Diff(expectedChaps, actualChaps, protocmp.Transform()))
+        }
     })
 }
 
