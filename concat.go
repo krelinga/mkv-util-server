@@ -130,6 +130,8 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
         args = append(args, p)
     }
     cmd := exec.CommandContext(ctx, "mkvmerge", args...)
+    cmd.Stdout = log.Default().Writer()
+    cmd.Stderr = log.Default().Writer()
     if err := cmd.Run(); err != nil {
         return nil, err
     }
