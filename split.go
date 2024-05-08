@@ -93,6 +93,7 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
     ctx, cancel := context.WithCancelCause(ctx)
     wg := sync.WaitGroup{}
     for _, o := range outputs {
+        o := o
         wg.Add(1)
         go func() {
             defer wg.Done()
