@@ -24,6 +24,7 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     wg := sync.WaitGroup{}
     ctx, cancel := context.WithCancelCause(ctx)
     for _, p := range r.InputPaths {
+        p := p
         i := &input{
             Path: p,
         }
