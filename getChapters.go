@@ -15,17 +15,17 @@ import (
 func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, error) {
     tmpDir, err := os.MkdirTemp("", "")
     if err != nil {
-        return nil, fmt.Errorf("Could not create temporary directory: %e", err)
+        return nil, fmt.Errorf("Could not create temporary directory: %w", err)
     }
     defer func() {
         if err := os.RemoveAll(tmpDir); err != nil {
-            log.Printf("could not remove temp dir %s: %e", tmpDir, err)
+            log.Printf("could not remove temp dir %s: %s", tmpDir, err)
         }
     }()
     chPath := filepath.Join(tmpDir, "chapters")
     cmd := exec.CommandContext(ctx, "mkvextract", path, "chapters", "-s", chPath)
     if err := cmd.Run(); err != nil {
-        return nil, fmt.Errorf("Error running mkvextract: %e", err)
+        return nil, fmt.Errorf("Error running mkvextract: %w", err)
     }
     chFile, err := os.Open(chPath)
     if err != nil {
@@ -34,7 +34,7 @@ func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, er
             // produced.
             return &pb.SimpleChapters{}, nil
         }
-        return nil, fmt.Errorf("Could not open chapter file: %e", err)
+        return nil, fmt.Errorf("Could not open chapter file: %w", err)
     }
     defer chFile.Close()
     return parseSimpleChapters(chFile)

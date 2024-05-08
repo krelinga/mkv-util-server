@@ -98,7 +98,7 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     // Store the chapters file out on disk
     tmpDir, err := os.MkdirTemp("", "")
     if err != nil {
-        return nil, fmt.Errorf("Could not create temporary dir: %e", err)
+        return nil, fmt.Errorf("Could not create temporary dir: %w", err)
     }
     defer func() {
         if err := os.RemoveAll(tmpDir); err != nil {
@@ -108,14 +108,14 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     chPath := filepath.Join(tmpDir, "chapters")
     chFile, err := os.Create(chPath)
     if err != nil {
-        return nil, fmt.Errorf("Could not open %s for writing: %e", chPath, err)
+        return nil, fmt.Errorf("Could not open %s for writing: %w", chPath, err)
     }
     if err := writeSimpleChapters(chFile, chaps); err != nil {
         chFile.Close()
-        return nil, fmt.Errorf("Could not write chapters to file: %e", err)
+        return nil, fmt.Errorf("Could not write chapters to file: %w", err)
     }
     if err := chFile.Close(); err != nil {
-        return nil, fmt.Errorf("Could not close chapters file: %e", err)
+        return nil, fmt.Errorf("Could not close chapters file: %w", err)
     }
 
     args := []string{

@@ -37,7 +37,7 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
         InPath: r.InPath,
     })
     if err != nil {
-        return nil, fmt.Errorf("Could not get chapters: %e", err)
+        return nil, fmt.Errorf("Could not get chapters: %w", err)
     }
     chapsIndex := map[int32]*pb.SimpleChapters_Chapter{}
     for _, c := range chaps.Chapters.Simple.Chapters {
@@ -100,7 +100,7 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
             // Write chapters to a temporary file.
             tmpDir, err := os.MkdirTemp("", "")
             if err != nil {
-                cancel(fmt.Errorf("Could not create temporary dir: %e", err))
+                cancel(fmt.Errorf("Could not create temporary dir: %w", err))
                 return
             }
             defer func() {
@@ -111,16 +111,16 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
             chPath := filepath.Join(tmpDir, "chapters")
             chFile, err := os.Create(chPath)
             if err != nil {
-                cancel(fmt.Errorf("Could not open %s for writing: %e", chPath, err))
+                cancel(fmt.Errorf("Could not open %s for writing: %w", chPath, err))
                 return
             }
             if err := writeSimpleChapters(chFile, o.Chapters); err != nil {
                 chFile.Close()
-                cancel(fmt.Errorf("Could not write chapters to file: %e", err))
+                cancel(fmt.Errorf("Could not write chapters to file: %w", err))
                 return
             }
             if err := chFile.Close(); err != nil {
-                cancel(fmt.Errorf("Could not close chapters file: %e", err))
+                cancel(fmt.Errorf("Could not close chapters file: %w", err))
                 return
             }
 
