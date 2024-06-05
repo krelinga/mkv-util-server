@@ -12,6 +12,7 @@ import (
 
     "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
+    "github.com/krelinga/kgo/ktestcont"
     "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/grpc"
     "google.golang.org/grpc/credentials/insecure"
@@ -429,6 +430,11 @@ func TestDocker(t *testing.T) {
         return
     }
     t.Parallel()
+    env, err := ktestcont.NewEnv(t)
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer env.Cleanup()
     if err := os.RemoveAll("testdata/out"); err != nil {
         t.Fatalf("Could not remove existing test output directory: %s", err)
     }
