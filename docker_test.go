@@ -104,7 +104,7 @@ func (tc testContainer) Stop(t *testing.T) {
     t.Log("Finished deleting docker image.")
 }
 
-func (tc testContainer) Run(t *testing.T) {
+func (tc testContainer) Run(t *testing.T, shareDir string) {
     t.Helper()
     cmd := exec.Command("docker")
     wd, err := os.Getwd()
@@ -113,6 +113,7 @@ func (tc testContainer) Run(t *testing.T) {
     }
     testdataPath := filepath.Join(wd, "testdata")
     mountCfg := fmt.Sprintf("type=bind,source=%s,target=/testdata", testdataPath)
+    shareMountCfg := fmt.Sprintf("type=bind,source=%s,target=%s", shareDir, shareDir)
     userCfg := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
     args := []string{
         "run",
@@ -121,6 +122,7 @@ func (tc testContainer) Run(t *testing.T) {
         "--name", tc.containerId,
         "-p", "25002:25002",
         "--mount", mountCfg,
+        "--mount", shareMountCfg,
         // This is needed so that generated files & directories have the correct ownership.
         "--user", userCfg,
         tc.containerId,
@@ -440,7 +442,7 @@ func TestDocker(t *testing.T) {
     }
     tc := newTestContainer()
     tc.Build(t)
-    tc.Run(t)
+    tc.Run(t, env.SharedDir())
     defer tc.Stop(t)
 
     // Create a stub to the test server.
