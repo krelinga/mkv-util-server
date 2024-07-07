@@ -2,7 +2,6 @@ FROM golang:1.21 AS build_stage
 
 WORKDIR /app
 COPY go.mod go.sum ./
-COPY pb/*.go ./pb/
 COPY idjson/*.go ./idjson/
 COPY *.go ./
 RUN go mod download
