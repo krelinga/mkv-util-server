@@ -10,11 +10,12 @@ import (
     "sync"
     "time"
 
-    "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/protobuf/types/known/durationpb"
+
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
 
-func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
+func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatResponse, error) {
     type input struct {
         Path string
         Duration time.Duration
@@ -47,7 +48,7 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
             defer wg.Done()
             req := &pb.GetChaptersRequest{
                 InPath: i.Path,
-                Format: pb.ChaptersFormat_CF_SIMPLE,
+                Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
             }
             resp, err := getChapters(ctx, req)
             if err != nil {
@@ -135,5 +136,5 @@ func concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
     if err := cmd.Run(); err != nil {
         return nil, err
     }
-    return &pb.ConcatReply{}, nil
+    return &pb.ConcatResponse{}, nil
 }

@@ -4,20 +4,22 @@ import (
     "bytes"
     "context"
     "fmt"
+    "net/http"
     "os"
     "os/exec"
     "path/filepath"
     "testing"
     "time"
 
+    "connectrpc.com/connect"
     "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
     "github.com/krelinga/kgo/ktestcont"
-    "github.com/krelinga/mkv-util-server/pb"
-    "google.golang.org/grpc"
-    "google.golang.org/grpc/credentials/insecure"
     "google.golang.org/protobuf/testing/protocmp"
     "google.golang.org/protobuf/types/known/durationpb"
+
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
+    pbconnect "buf.build/gen/go/krelinga/proto/connectrpc/go/krelinga/video/mkv_util_server/v1/mkv_util_serverv1connect"
 )
 
 type testContainer struct {
@@ -49,16 +51,16 @@ func unsafeDurationPb(s string) *durationpb.Duration {
     return durationpb.New(unsafeDuration(s))
 }
 
-func readDuration(t *testing.T, mkvPath string, c pb.MkvUtilClient) time.Duration {
+func readDuration(t *testing.T, mkvPath string, c pbconnect.MkvUtilServiceClient) time.Duration {
     t.Helper()
-    req := &pb.GetInfoRequest{
+    req := connect.NewRequest(&pb.GetInfoRequest{
         InPath: mkvPath,
-    }
+    })
     repl, err := c.GetInfo(context.Background(), req)
     if err != nil {
         t.Fatal(err)
     }
-    return repl.Info.Duration.AsDuration()
+    return repl.Msg.Info.Duration.AsDuration()
 }
 
 func unsafeOutputPath(t *testing.T, suffix string) string {
@@ -135,10 +137,10 @@ func (tc testContainer) Run(t *testing.T, shareDir string) {
     t.Log("Started Docker container.")
 }
 
-func testGetFileSize(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.GetFileSizeRequest{
+func testGetFileSize(t *testing.T, c pbconnect.MkvUtilServiceClient) {
+    req := connect.NewRequest(&pb.GetFileSizeRequest{
         Path: "/testdata/test.txt",
-    }
+    })
     rep, err := c.GetFileSize(context.Background(), req)
     if err != nil {
         t.Errorf("Error calling GetFileSize(): %s", err)
@@ -149,70 +151,70 @@ func testGetFileSize(t *testing.T, c pb.MkvUtilClient) {
         t.Errorf("Error stat'ing test file: %s", err)
         return
     }
-    if rep.Size != stat.Size() {
-        t.Errorf("size mismatch: rep.Size = %d, stat.Size() = %d", rep.Size, stat.Size())
+    if rep.Msg.Size != stat.Size() {
+        t.Errorf("size mismatch: rep.Size = %d, stat.Size() = %d", rep.Msg.Size, stat.Size())
     }
 }
 
-func testRunMkvToolNixCommand(t *testing.T, c pb.MkvUtilClient) {
+func testRunMkvToolNixCommand(t *testing.T, c pbconnect.MkvUtilServiceClient) {
     t.Run("File Exists", func(t *testing.T) {
-        req := &pb.RunMkvToolNixCommandRequest{
+        req := connect.NewRequest(&pb.RunMkvToolNixCommandRequest{
             Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
             Args: []string{
                 "/testdata/sample_640x360.mkv",
             },
-        }
+        })
         resp, err := c.RunMkvToolNixCommand(context.Background(), req)
-        if err != nil || len(resp.Stdout) == 0 {
+        if err != nil || len(resp.Msg.Stdout) == 0 {
             t.Errorf("Error calling mkvinfo: %s", err)
             if resp != nil {
-                t.Errorf("Stdout:\n%s", resp.Stdout)
-                t.Errorf("Stderr:\n%s", resp.Stderr)
+                t.Errorf("Stdout:\n%s", resp.Msg.Stdout)
+                t.Errorf("Stderr:\n%s", resp.Msg.Stderr)
             }
         }
     })
     t.Run("File does not exist", func(t *testing.T) {
-        req := &pb.RunMkvToolNixCommandRequest{
+        req := connect.NewRequest(&pb.RunMkvToolNixCommandRequest{
             Command: pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO,
             Args: []string{
                 "/does/not/exist",
             },
-        }
+        })
         resp, err := c.RunMkvToolNixCommand(context.Background(), req)
         if err == nil {
-            t.Errorf("Stdout:\n%s", resp.Stdout)
-            t.Errorf("Stderr:\n%s", resp.Stderr)
+            t.Errorf("Stdout:\n%s", resp.Msg.Stdout)
+            t.Errorf("Stderr:\n%s", resp.Msg.Stderr)
         }
     })
 }
 
-func readChapters(t *testing.T, p string, c pb.MkvUtilClient) *pb.SimpleChapters {
+func readChapters(t *testing.T, p string, c pbconnect.MkvUtilServiceClient) *pb.SimpleChapters {
     t.Helper()
-    req := &pb.GetChaptersRequest{
+    req := connect.NewRequest(&pb.GetChaptersRequest{
         InPath: p,
-        Format: pb.ChaptersFormat_CF_SIMPLE,
-    }
+        Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
+    })
     resp, err := c.GetChapters(context.Background(), req)
     if err != nil {
         t.Errorf("Could not get chapters in %s: %s", p, err)
         return &pb.SimpleChapters{}
     }
-    return resp.Chapters.Simple
+    return resp.Msg.Chapters.Simple
 }
 
-func countChapters(t *testing.T, p string, c pb.MkvUtilClient) int {
+func countChapters(t *testing.T, p string, c pbconnect.MkvUtilServiceClient) int {
     t.Helper()
     return len(readChapters(t, p, c).Chapters)
 }
 
-func testConcat(t *testing.T, c pb.MkvUtilClient) {
+func testConcat(t *testing.T, c pbconnect.MkvUtilServiceClient) {
     t.Run("chapters_added_to_chapterless_file", func(t *testing.T) {
         inPath := "/testdata/sample_640x360.mkv"
         outPath:= unsafeOutputPath(t, "concat.mkv")
-        req := &pb.ConcatRequest{
+        req := connect.NewRequest(&pb.ConcatRequest{
             InputPaths: []string{inPath, inPath},
             OutputPath: outPath,
-        }
+        })
         _, err := c.Concat(context.Background(), req)
         if err != nil {
             t.Error(err)
@@ -231,13 +233,13 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
     })
     t.Run("existing_chapters_preserved", func(t *testing.T) {
         outPath:= unsafeOutputPath(t, "concat.mkv")
-        req := &pb.ConcatRequest{
+        req := connect.NewRequest(&pb.ConcatRequest{
             InputPaths: []string{
                 "/testdata/3_chapters.mkv",
                 "/testdata/4_chapters.mkv",
             },
             OutputPath: outPath,
-        }
+        })
         _, err := c.Concat(context.Background(), req)
         if err != nil {
             t.Error(err)
@@ -295,9 +297,9 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
     })
     t.Run("no_input_files_given", func(t *testing.T) {
         outPath:= unsafeOutputPath(t, "concat.mkv")
-        req := &pb.ConcatRequest{
+        req := connect.NewRequest(&pb.ConcatRequest{
             OutputPath: outPath,
-        }
+        })
         _, err := c.Concat(context.Background(), req)
         if err == nil {
             t.Error("Expected an error.")
@@ -305,55 +307,55 @@ func testConcat(t *testing.T, c pb.MkvUtilClient) {
     })
 }
 
-func testGetChapters(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.GetChaptersRequest{
+func testGetChapters(t *testing.T, c pbconnect.MkvUtilServiceClient) {
+    req := connect.NewRequest(&pb.GetChaptersRequest{
         InPath: "/testdata/sample_640x360.mkv",
-        Format: pb.ChaptersFormat_CF_SIMPLE,
-    }
+        Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
+    })
     resp, err := c.GetChapters(context.Background(), req)
     if err != nil {
         t.Error(err)
         return
     }
-    expected := &pb.GetChaptersReply {
+    expected := &pb.GetChaptersResponse {
         Chapters: &pb.Chapters{
-            Format: pb.ChaptersFormat_CF_SIMPLE,
+            Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
         },
     }
-    if !cmp.Equal(expected, resp, protocmp.Transform()) {
-        t.Error(cmp.Diff(expected, c, protocmp.Transform()))
+    if !cmp.Equal(expected, resp.Msg, protocmp.Transform()) {
+        t.Error(cmp.Diff(expected, resp.Msg, protocmp.Transform()))
     }
 }
 
-func testGetInfo(t *testing.T, c pb.MkvUtilClient) {
-    req := &pb.GetInfoRequest{
+func testGetInfo(t *testing.T, c pbconnect.MkvUtilServiceClient) {
+    req := connect.NewRequest(&pb.GetInfoRequest{
         InPath: "/testdata/sample_640x360.mkv",
-    }
+    })
     resp, err := c.GetInfo(context.Background(), req)
     if err != nil {
         t.Error(err)
         return
     }
-    exp := &pb.GetInfoReply{
+    exp := &pb.GetInfoResponse{
         Info: &pb.Info{
             Duration: unsafeDurationPb("13s346ms"),
         },
     }
-    if !cmp.Equal(exp, resp, protocmp.Transform()) {
-        t.Error(cmp.Diff(exp, resp, protocmp.Transform()))
+    if !cmp.Equal(exp, resp.Msg, protocmp.Transform()) {
+        t.Error(cmp.Diff(exp, resp.Msg, protocmp.Transform()))
     }
 }
 
-func testSplit(t *testing.T, c pb.MkvUtilClient) {
+func testSplit(t *testing.T, c pbconnect.MkvUtilServiceClient) {
     t.Run("empty_in_path_causes_error", func(t *testing.T) {
-        req := &pb.SplitRequest{}
+        req := connect.NewRequest(&pb.SplitRequest{})
         _, err := c.Split(context.Background(), req)
         if err == nil {
             t.Error("Expected an error.")
         }
     })
     t.Run("start_too_high_causes_error", func(t *testing.T) {
-        req := &pb.SplitRequest{
+        req := connect.NewRequest(&pb.SplitRequest{
             InPath: "/testdata/3_chapters.mkv",
             ByChapters: []*pb.SplitRequest_ByChapters{
                 {
@@ -361,14 +363,14 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
                     OutPath: unsafeOutputPath(t, "split.mkv"),
                 },
             },
-        }
+        })
         _, err := c.Split(context.Background(), req)
         if err == nil {
             t.Error("Expected an error.")
         }
     })
     t.Run("limit_too_high_causes_error", func(t *testing.T) {
-        req := &pb.SplitRequest{
+        req := connect.NewRequest(&pb.SplitRequest{
             InPath: "/testdata/3_chapters.mkv",
             ByChapters: []*pb.SplitRequest_ByChapters{
                 {
@@ -376,7 +378,7 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
                     OutPath: unsafeOutputPath(t, "split.mkv"),
                 },
             },
-        }
+        })
         _, err := c.Split(context.Background(), req)
         if err == nil {
             t.Error("Expected an error.")
@@ -384,7 +386,7 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
     })
     t.Run("range_in_middle", func(t *testing.T) {
         outPath := unsafeOutputPath(t, "split.mkv")
-        req := &pb.SplitRequest{
+        req := connect.NewRequest(&pb.SplitRequest{
             InPath: "/testdata/4_chapters.mkv",
             ByChapters: []*pb.SplitRequest_ByChapters{
                 {
@@ -393,7 +395,7 @@ func testSplit(t *testing.T, c pb.MkvUtilClient) {
                     OutPath: outPath,
                 },
             },
-        }
+        })
         _, err := c.Split(context.Background(), req)
         if err != nil {
             t.Error(err)
@@ -446,13 +448,8 @@ func TestDocker(t *testing.T) {
     defer tc.Stop(t)
 
     // Create a stub to the test server.
-    const target = "docker-daemon:25002"
-    creds := grpc.WithTransportCredentials(insecure.NewCredentials())
-    conn, err := grpc.DialContext(context.Background(), target, creds)
-    if err != nil {
-        t.Fatalf("Could not dial target: %s", err)
-    }
-    client := pb.NewMkvUtilClient(conn)
+    const target = "http://docker-daemon:25002"
+    client := pbconnect.NewMkvUtilServiceClient(http.DefaultClient, target)
 
     t.Run("testGetFileSize", func(t *testing.T) {
         testGetFileSize(t, client)

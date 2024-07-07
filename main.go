@@ -5,38 +5,40 @@ import (
     "context"
     "errors"
     "fmt"
-    "log"
-    "net"
+    "net/http"
     "os"
     "os/exec"
 
-    "github.com/krelinga/mkv-util-server/pb"
-    "google.golang.org/grpc"
+    "connectrpc.com/connect"
+    "golang.org/x/net/http2"
+    "golang.org/x/net/http2/h2c"
+    
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
+    pbconnect "buf.build/gen/go/krelinga/proto/connectrpc/go/krelinga/video/mkv_util_server/v1/mkv_util_serverv1connect"
 )
 
 type MkvUtilServer struct {
-    pb.UnimplementedMkvUtilServer
 }
 
-func (s *MkvUtilServer) GetFileSize(_ context.Context, r *pb.GetFileSizeRequest) (*pb.GetFileSizeReply, error) {
-    stat, err := os.Stat(r.Path)
+func (s *MkvUtilServer) GetFileSize(_ context.Context, r *connect.Request[pb.GetFileSizeRequest]) (*connect.Response[pb.GetFileSizeResponse], error) {
+    stat, err := os.Stat(r.Msg.Path)
     if err != nil {
         return nil, err
     }
-    return &pb.GetFileSizeReply{
+    return connect.NewResponse(&pb.GetFileSizeResponse{
         Size: stat.Size(),
-    }, nil
+    }), nil
 }
 
-func (s *MkvUtilServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvToolNixCommandRequest) (*pb.RunMkvToolNixCommandReply, error) {
+func (s *MkvUtilServer) RunMkvToolNixCommand(ctx context.Context, r *connect.Request[pb.RunMkvToolNixCommandRequest]) (*connect.Response[pb.RunMkvToolNixCommandResponse], error) {
     var command string;
-    switch r.Command {
+    switch r.Msg.Command {
     case pb.RunMkvToolNixCommandRequest_COMMAND_MKVINFO:
         command = "mkvinfo"
     default:
-        return nil, fmt.Errorf("Unsupported command: %v", r.Command)
+        return nil, fmt.Errorf("Unsupported command: %v", r.Msg.Command)
     }
-    cmd := exec.CommandContext(ctx, command, r.Args...)
+    cmd := exec.CommandContext(ctx, command, r.Msg.Args...)
     var stdout, stderr bytes.Buffer
     cmd.Stdout = &stdout
     cmd.Stderr = &stderr
@@ -53,55 +55,49 @@ func (s *MkvUtilServer) RunMkvToolNixCommand(ctx context.Context, r *pb.RunMkvTo
 
         return -1
     }
-    return &pb.RunMkvToolNixCommandReply{
+    return connect.NewResponse(&pb.RunMkvToolNixCommandResponse{
         ExitCode: getExitCode(),
         Stdout: stdout.String(),
         Stderr: stderr.String(),
-    }, err
+    }), err
 }
 
-func (s *MkvUtilServer) Concat(ctx context.Context, r *pb.ConcatRequest) (*pb.ConcatReply, error) {
-    return concat(ctx, r)
-}
-
-func (s *MkvUtilServer) GetChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
-    return getChapters(ctx, r)
-}
-
-func (s *MkvUtilServer) GetInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error) {
-    return getInfo(ctx, r)
-}
-
-func (s *MkvUtilServer) Split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
-    return split(ctx, r)
-}
-
-func MainOrError() error {
-    lis, err := net.Listen("tcp", ":25002")
+func (s *MkvUtilServer) Concat(ctx context.Context, r *connect.Request[pb.ConcatRequest]) (*connect.Response[pb.ConcatResponse], error) {
+    resp, err := concat(ctx, r.Msg)
     if err != nil {
-        return err
+        return nil, err
     }
-    errHandler := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-        resp, err := handler(ctx, req)
-        if err == nil {
-            return resp, err
-        }
-        log.Printf("method %q failed: %s, req: %v", info.FullMethod, err, req)
-        var exitError *exec.ExitError
-        if errors.As(err, &exitError) {
-            log.Printf("ExitError: %s", *exitError)
-        }
-        return resp, err
-    }
-    grpcServer := grpc.NewServer(grpc.UnaryInterceptor(errHandler))
-    pb.RegisterMkvUtilServer(grpcServer, &MkvUtilServer{})
-    grpcServer.Serve(lis)  // Runs as long as the server is alive.
+    return connect.NewResponse(resp), nil
+}
 
-    return nil
+func (s *MkvUtilServer) GetChapters(ctx context.Context, r *connect.Request[pb.GetChaptersRequest]) (*connect.Response[pb.GetChaptersResponse], error) {
+    resp, err := getChapters(ctx, r.Msg)
+    if err != nil {
+        return nil, err
+    }
+    return connect.NewResponse(resp), nil
+}
+
+func (s *MkvUtilServer) GetInfo(ctx context.Context, r *connect.Request[pb.GetInfoRequest]) (*connect.Response[pb.GetInfoResponse], error) {
+    resp, err := getInfo(ctx, r.Msg)
+    if err != nil {
+        return nil, err
+    }
+    return connect.NewResponse(resp), nil
+}
+
+func (s *MkvUtilServer) Split(ctx context.Context, r *connect.Request[pb.SplitRequest]) (*connect.Response[pb.SplitResponse], error) {
+    resp, err := split(ctx, r.Msg)
+    if err != nil {
+        return nil, err
+    }
+    return connect.NewResponse(resp), nil
 }
 
 func main() {
-    if err := MainOrError(); err != nil {
-        log.Fatal(err)
-    }
+    mux := http.NewServeMux()
+    path, handler := pbconnect.NewMkvUtilServiceHandler(&MkvUtilServer{})
+    mux.Handle(path, handler)
+    // Runs as long as the server is alive.
+    http.ListenAndServe("0.0.0.0:25002", h2c.NewHandler(mux, &http2.Server{}))
 }

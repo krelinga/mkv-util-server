@@ -6,9 +6,10 @@ import (
     "time"
 
     "github.com/google/go-cmp/cmp"
-    "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/protobuf/testing/protocmp"
     "google.golang.org/protobuf/types/known/durationpb"
+
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
 
 const (

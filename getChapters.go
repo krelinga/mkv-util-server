@@ -9,7 +9,7 @@ import (
     "os/exec"
     "path/filepath"
 
-    "github.com/krelinga/mkv-util-server/pb"
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
 
 func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, error) {
@@ -40,16 +40,16 @@ func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, er
     return parseSimpleChapters(chFile)
 }
 
-func getChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersReply, error) {
-    resp := &pb.GetChaptersReply {}
+func getChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersResponse, error) {
+    resp := &pb.GetChaptersResponse {}
     switch r.Format {
-    case pb.ChaptersFormat_CF_SIMPLE:
+    case pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE:
         simple, err := getChaptersSimple(ctx, r.InPath)
         if err != nil {
             return nil, err
         }
         resp.Chapters = &pb.Chapters{
-            Format: pb.ChaptersFormat_CF_SIMPLE,
+            Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
             Simple: simple,
         }
     default:

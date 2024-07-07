@@ -12,7 +12,7 @@ import (
     "sync"
     "time"
 
-    "github.com/krelinga/mkv-util-server/pb"
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
 
 func splitOffset(d time.Duration) string {
@@ -31,9 +31,9 @@ func splitOffset(d time.Duration) string {
     return fmt.Sprintf("%02d:%02d:%02d.%03d", h(d), m(d), s(d), ms(d))
 }
 
-func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
+func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitResponse, error) {
     chaps, err := getChapters(ctx, &pb.GetChaptersRequest{
-        Format: pb.ChaptersFormat_CF_SIMPLE,
+        Format: pb.ChaptersFormat_CHAPTERS_FORMAT_SIMPLE,
         InPath: r.InPath,
     })
     if err != nil {
@@ -154,5 +154,5 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitReply, error) {
     if context.Cause(ctx) != nil {
         return nil, context.Cause(ctx)
     }
-    return &pb.SplitReply{}, nil
+    return &pb.SplitResponse{}, nil
 }

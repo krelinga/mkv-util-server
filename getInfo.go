@@ -7,8 +7,9 @@ import (
     "os/exec"
 
     "github.com/krelinga/mkv-util-server/idjson"
-    "github.com/krelinga/mkv-util-server/pb"
     "google.golang.org/protobuf/types/known/durationpb"
+
+    pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
 
 // Returns nil if no video tracks found.
@@ -21,7 +22,7 @@ func findFirstVideoTrack(j *idjson.MkvMerge) *idjson.Track {
     return nil
 }
 
-func getInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error) {
+func getInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoResponse, error) {
     cmd := exec.CommandContext(ctx, "mkvmerge", "-J", r.InPath)
     b := bytes.Buffer{}
     cmd.Stdout = &b
@@ -36,7 +37,7 @@ func getInfo(ctx context.Context, r *pb.GetInfoRequest) (*pb.GetInfoReply, error
     if err != nil {
         return nil, fmt.Errorf("Could not convert mkvmerge output to a time.Duration: %w", err)
     }
-    resp := &pb.GetInfoReply{
+    resp := &pb.GetInfoResponse{
         Info: &pb.Info{
             Duration: durationpb.New(d),
         },
