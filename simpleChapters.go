@@ -78,6 +78,19 @@ func parseSimpleChapters(r io.Reader) (*pb.SimpleChapters, error) {
     return chapters, nil
 }
 
+func setSimpleChaptersDurations(ch *pb.SimpleChapters, overallDuration time.Duration){
+    for i := 0; i < len(ch.Chapters); i++ {
+        nextOffset := func() time.Duration {
+            if i < len(ch.Chapters) - 1 {
+                return ch.Chapters[i + 1].Offset.AsDuration()
+            } else {
+                return overallDuration
+            }
+        }()
+        ch.Chapters[i].Duration = durationpb.New(nextOffset - ch.Chapters[i].Offset.AsDuration())
+    }
+}
+
 func writeSimpleChapters(w io.Writer, ch *pb.SimpleChapters) error {
     h := func(d time.Duration) int {
         return int(d.Truncate(time.Hour) / time.Hour)

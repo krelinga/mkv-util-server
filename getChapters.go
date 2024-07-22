@@ -8,6 +8,7 @@ import (
     "os"
     "os/exec"
     "path/filepath"
+    "time"
 
     pb "buf.build/gen/go/krelinga/proto/protocolbuffers/go/krelinga/video/mkv_util_server/v1"
 )
@@ -37,7 +38,27 @@ func getChaptersSimple(ctx context.Context, path string) (*pb.SimpleChapters, er
         return nil, fmt.Errorf("Could not open chapter file: %w", err)
     }
     defer chFile.Close()
-    return parseSimpleChapters(chFile)
+    parsed, err := parseSimpleChapters(chFile)
+    if err != nil {
+        return nil, err
+    }
+
+    overallDuration, err := func() (time.Duration, error) {
+        req := &pb.GetInfoRequest{
+            InPath: path,
+        }
+        info, err := getInfo(ctx, req)
+        if err != nil {
+            return 0, err
+        }
+        if err := info.Info.Duration.CheckValid(); err != nil {
+            return 0, err
+        }
+        return info.Info.Duration.AsDuration(), nil
+    }()
+
+    setSimpleChaptersDurations(parsed, overallDuration)
+    return parsed, nil
 }
 
 func getChapters(ctx context.Context, r *pb.GetChaptersRequest) (*pb.GetChaptersResponse, error) {

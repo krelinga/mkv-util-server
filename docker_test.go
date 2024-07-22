@@ -258,36 +258,43 @@ func testConcat(t *testing.T, c pbconnect.MkvUtilServiceClient) {
                     Number: 1,
                     Name: "Chapter 01",
                     Offset: durationpb.New(0),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
                 {
                     Number: 2,
                     Name: "Chapter 02",
                     Offset: unsafeDurationPb("13.346s"),
+                    Duration: unsafeDurationPb("13.347s"),
                 },
                 {
                     Number: 3,
                     Name: "Chapter 03",
                     Offset: unsafeDurationPb("26.693s"),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
                 {
                     Number: 4,
                     Name: "Chapter 04",
                     Offset: unsafeDurationPb("40.039s"),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
                 {
                     Number: 5,
                     Name: "Chapter 05",
                     Offset: unsafeDurationPb("53.385s"),
+                    Duration: unsafeDurationPb("13.347s"),
                 },
                 {
                     Number: 6,
                     Name: "Chapter 06",
                     Offset: unsafeDurationPb("66.732s"),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
                 {
                     Number: 7,
                     Name: "Chapter 07",
                     Offset: unsafeDurationPb("80.078s"),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
             },
         }
@@ -413,11 +420,13 @@ func testSplit(t *testing.T, c pbconnect.MkvUtilServiceClient) {
                     Number: 1,
                     Name: "Chapter 01",
                     Offset: unsafeDurationPb("0s"),
+                    Duration: unsafeDurationPb("13.347s"),
                 },
                 {
                     Number: 2,
                     Name: "Chapter 02",
                     Offset: unsafeDurationPb("13.347s"),
+                    Duration: unsafeDurationPb("13.346s"),
                 },
             },
         }
