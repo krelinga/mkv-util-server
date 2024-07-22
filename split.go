@@ -141,6 +141,7 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitResponse, error) {
                 "--no-chapters",
                 r.InPath,
             }
+            log.Printf("mkvmerge %v\n", args)
             cmd := exec.CommandContext(ctx, "mkvmerge", args...)
             cmd.Stderr = log.Default().Writer()
             cmd.Stdout = log.Default().Writer()
