@@ -92,10 +92,22 @@ func split(ctx context.Context, r *pb.SplitRequest) (*pb.SplitResponse, error) {
 
     ctx, cancel := context.WithCancelCause(ctx)
     wg := sync.WaitGroup{}
+    // As of 2024-07-22 there's some kind of race here that I don't understand.
+    // If we run more than ~2 of these processes in parallel they start dying
+    // due to OS signals.  Running these in parallel provides a substantial
+    // performance improvement, so I don't want to restructure the code to be
+    // sequential.  So, we use a semaphore here to limit the parallelism to 1.
+    // This is tracked in issue#3.
+    sem := make(chan struct{}, 1)
+    defer close(sem)
     for _, o := range outputs {
         o := o
         wg.Add(1)
         go func() {
+            sem <- struct{}{}
+            defer func() {
+                <- sem
+            }()
             defer wg.Done()
             // Write chapters to a temporary file.
             tmpDir, err := os.MkdirTemp("", "")
